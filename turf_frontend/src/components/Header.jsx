@@ -29,7 +29,7 @@ const Header = () => {
       <div className="container">
         <div className="row justify-content-between align-items-center">
           <div className="col-auto">
-            <img src="/assets/images/logo.png" alt="Logo" />
+            <img src="/assets/images/logo.jpg" alt="Logo" />
           </div>
 
           <div className="col-auto header-nav">

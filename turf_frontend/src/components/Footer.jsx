@@ -6,7 +6,7 @@ const Footer = () => {
     <footer>
       <div className="container">
         <div className="top-area">
-          <img src="/assets/images/footer-logo.png" alt="Sportitude Logo" />
+          <img src="/assets/images/footer-logo.jpg" alt="Sportitude Logo" />
           
           {/* Social Media */}
           <ul className="contact social-icon">

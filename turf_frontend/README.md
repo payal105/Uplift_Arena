@@ -115,8 +115,8 @@ All styles are located in `/public/assets/css/style.css`. The original SCSS file
 
 ### Images
 Replace images in `/public/assets/images/` with your own:
-- `logo.png` - Header logo
-- `footer-logo.png` - Footer logo
+- `logo.jpg` - Header logo
+- `footer-logo.jpg` - Footer logo
 - `banner.jpg` - Banner background
 - `gallery*.jpg` - Gallery images
 - Game icons (`g1.png`, `g2.png`, etc.)
