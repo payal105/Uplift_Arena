@@ -1,0 +1,209 @@
+/* Custom styles for booking form */
+
+/* Global font family - Trebuchet */
+* {
+  font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif !important;
+}
+
+/* Selected slot styling */
+.time-slots .form-check.selected-slot {
+  background-color: #08295E !important;
+  border-color: #08295E !important;
+}
+
+.time-slots .form-check.selected-slot label {
+  color: white !important;
+}
+
+.time-slots .form-check.selected-slot label span {
+  color: white !important;
+}
+
+.time-slots .form-check.selected-slot .form-check-input:checked {
+  background-color: white !important;
+  border-color: white !important;
+}
+
+/* Smooth transition for slot selection */
+.time-slots .form-check {
+  transition: all 0.3s ease;
+}
+
+/* Modal styling */
+.booking-modal .modal-header {
+  border-bottom: none;
+}
+
+.booking-modal .btn-close-white {
+  filter: brightness(0) invert(1);
+}
+
+/* Footer Links Styling */
+.footer-contact-link {
+  color: #fff;
+  text-decoration: none;
+  font-size: 1.1rem;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.footer-contact-link:hover {
+  color: #A6CE39;
+}
+
+.footer-links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  gap: 20px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.footer-links li a {
+  color: #fff;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.footer-links li a:hover {
+  color: #A6CE39;
+}
+
+/* Policy Pages Styling */
+.policy-section {
+  background-color: #fff;
+}
+
+.policy-section h2 {
+  color: #08295E;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-top: 30px;
+  margin-bottom: 15px;
+}
+
+.policy-section p {
+  line-height: 1.8;
+  color: #333;
+  margin-bottom: 15px;
+}
+
+.policy-section ul {
+  margin-left: 20px;
+  margin-bottom: 15px;
+}
+
+.policy-section ul li {
+  line-height: 1.8;
+  color: #555;
+  margin-bottom: 8px;
+}
+
+/* Contact Page Styling */
+.contact-section {
+  background-color: #fff;
+}
+
+.contact-info-box h5 {
+  color: #08295E;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.contact-info-box a {
+  color: #08295E;
+  text-decoration: none;
+}
+
+.contact-info-box a:hover {
+  color: #A6CE39;
+}
+
+.contact-form .form-label {
+  color: #08295E;
+  font-weight: 500;
+}
+
+.contact-form .form-control {
+  border: 1px solid #ddd;
+  padding: 10px;
+}
+
+.contact-form .form-control:focus {
+  border-color: #08295E;
+  box-shadow: 0 0 0 0.2rem rgba(8, 41, 94, 0.1);
+}
+
+.map-container {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.policy-content {
+  background: white;
+  padding: 40px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.policy-content h1 {
+  color: #08295E;
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.policy-content h2 {
+  color: #08295E;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-top: 30px;
+  margin-bottom: 15px;
+}
+
+.policy-content p {
+  line-height: 1.8;
+  color: #333;
+  margin-bottom: 15px;
+}
+
+.policy-content ul {
+  margin-left: 20px;
+  margin-bottom: 15px;
+}
+
+.policy-content ul li {
+  line-height: 1.8;
+  color: #555;
+  margin-bottom: 8px;
+}
+
+/* About section icon styling */
+.about-item .icon-area {
+  color: #08295E;
+  transition: color 0.3s ease;
+}
+
+.about-item:hover .icon-area {
+  color: white;
+}
+
+@media (max-width: 768px) {
+  .footer-links {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  
+  .policy-content {
+    padding: 20px;
+  }
+  
+  .policy-content h1 {
+    font-size: 2rem;
+  }
+}
