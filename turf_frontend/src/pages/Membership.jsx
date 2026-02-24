@@ -105,7 +105,8 @@ const facilities = [
     svg: <CoffeeIcon />,
     title: 'Refreshments',
     description: 'Tea & Coffee with functional and comfortable seating area',
-    included: true,
+    included: false,
+    note: 'Available on demand',
   },
   {
     svg: <ParkingIcon />,
@@ -129,14 +130,14 @@ const facilities = [
   {
     svg: <TennisIcon />,
     title: 'Tennis',
-    description: '2 indoor courts — 9-layer professional coating for optimal performance',
+    description: '2 indoor courts — clay surface courts for an authentic game experience',
     included: false,
     note: '₹100 / hr per member',
   },
   {
     svg: <PickleballIcon />,
     title: 'Pickleball',
-    description: '2 indoor courts — clay surface courts for an authentic game experience',
+    description: '2 indoor courts — 9-layer professional coating for optimal performance',
     included: false,
     note: '₹100 / hr per member',
   },
@@ -165,7 +166,6 @@ const Membership = () => {
     email: '',
     phone: '',
     sports: [],
-    startDate: '',
     membershipType: '',
     message: '',
   });
@@ -194,7 +194,7 @@ const Membership = () => {
     // Reset after 3 seconds
     setTimeout(() => {
       setSubmitted(false);
-      setFormData({ name: '', email: '', phone: '', sports: [], startDate: '', membershipType: '', message: '' });
+      setFormData({ name: '', email: '', phone: '', sports: [], membershipType: '', message: '' });
     }, 4000);
   };
 
@@ -250,7 +250,7 @@ const Membership = () => {
         <div className="container">
           <div className="heading-part text-center mb-5">
             <h2>Rates for Futsal &amp; Big Turf</h2>
-            <p className="text-muted">Exclusive rates for registered members on our premium turf facilities</p>
+            <p className="text-muted">Get access to our premium turf facilities</p>
           </div>
           <div className="row g-4 justify-content-center">
             {sportsRates.map((sport, index) => (
@@ -376,7 +376,7 @@ const Membership = () => {
                       {/* Membership Type */}
                       <div className="col-md-6">
                         <label className="form-label fw-semibold">
-                          Membership Duration <span className="text-danger">*</span>
+                          Membership Type <span className="text-danger">*</span>
                         </label>
                         <select
                           className="form-select"
@@ -385,24 +385,10 @@ const Membership = () => {
                           onChange={handleChange}
                           required
                         >
-                          <option value="">Select membership duration</option>
-                          <option value="monthly">Monthly</option>
-                          <option value="quarterly">Quarterly (3 Months)</option>
-                          <option value="half-yearly">Half Yearly (6 Months)</option>
-                          <option value="annual">Annual (12 Months)</option>
+                          <option value="">Select membership type</option>
+                          <option value="individual">Individual</option>
+                          <option value="family">Family</option>
                         </select>
-                      </div>
-
-                      {/* Preferred Start Date */}
-                      <div className="col-md-6">
-                        <label className="form-label fw-semibold">Preferred Start Date</label>
-                        <input
-                          type="date"
-                          className="form-control"
-                          name="startDate"
-                          value={formData.startDate}
-                          onChange={handleChange}
-                        />
                       </div>
 
                       {/* Sports Interested In */}
