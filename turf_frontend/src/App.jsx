@@ -11,6 +11,7 @@ import Coaching from './pages/Coaching';
 import RateCard from './pages/RateCard';
 import Membership from './pages/Membership';
 import Contact from './pages/Contact';
+import Login from './pages/Login';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import PaymentPolicy from './pages/PaymentPolicy';
 import UsagePolicy from './pages/UsagePolicy';
@@ -54,6 +55,7 @@ function App() {
           <Route path="/rates" element={<RateCard />} />
           <Route path="/membership" element={<Membership />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/login" element={<Login />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/payment-policy" element={<PaymentPolicy />} />
           <Route path="/usage-policy" element={<UsagePolicy />} />

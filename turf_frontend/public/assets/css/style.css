@@ -106,6 +106,7 @@ p {
 .btn-primary {
   background: url(../images/btn-icon.png) left center no-repeat;
   background-size: auto 100%;
+  --bs-btn-color: #fff;
   color: #fff;
   border: 1px solid #AADF6D;
   display: inline-flex;
