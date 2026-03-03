@@ -1,4 +1,5 @@
 const FormBooking = require("../models/FormBooking");
+const { sendBookingConfirmationEmail } = require("../utils/emailService");
 
 const TURF_LABELS = {
   'badminton-1': 'Badminton 1',
@@ -77,6 +78,12 @@ exports.createFormBooking = async (req, res) => {
       guestCount: guests,
       guestCharges
     });
+
+    // Send confirmation email to the logged-in user's email (non-blocking)
+    const userEmail = req.user?.email || booking.email;
+    sendBookingConfirmationEmail(booking, userEmail).catch((err) =>
+      console.error("Email send failed:", err.message)
+    );
 
     res.status(201).json({
       message: "Booking confirmed successfully",
