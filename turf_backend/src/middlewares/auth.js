@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
 const AdminUser = require("../models/AdminUser");
-const User = require("../models/User");
+const UserData = require("../models/UserData");
 
 // General authentication middleware
 const authenticate = async (req, res, next) => {
@@ -26,7 +26,7 @@ const authenticate = async (req, res, next) => {
       req.userRole = decoded.role;
     } else {
       // It's a regular user
-      req.user = await User.findById(decoded.userId).select("-password");
+      req.user = await UserData.findById(decoded.userId).select("-password");
       req.userId = decoded.userId;
       req.userRole = decoded.role || "USER";
     }

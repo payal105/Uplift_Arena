@@ -39,6 +39,11 @@ const userAuthRoutes = require("./routes/userAuthRoutes");
 app.use("/api/users", userAuthRoutes);
 console.log("✅ User auth routes loaded at /api/users");
 
+// UserData auth routes
+const user_dataRoutes = require("./routes/user_dataRoutes");
+app.use("/api/user_data", user_dataRoutes);
+console.log("✅ UserData routes loaded at /api/user_data");
+
 // Admin auth
 const adminAuthRoutes = require("./routes/adminAuthRoutes");
 app.use("/api/admin", adminAuthRoutes);
@@ -63,6 +68,10 @@ app.use("/api/slots", slotRoutes)
 // Booking routes
 const bookingRoutes = require("./routes/bookingRoutes")
 app.use("/api/bookings", bookingRoutes)
+
+// Form booking routes
+const formBookingRoutes = require("./routes/formBookingRoutes")
+app.use("/api/form-bookings", formBookingRoutes)
 
 // Stats routes
 const statsRoutes = require("./routes/statsRoutes")

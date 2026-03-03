@@ -11,21 +11,31 @@ const BookingForm = () => {
     return `${year}-${month}-${day}`;
   };
 
+  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('userToken'));
+
+  useEffect(() => {
+    const syncAuth = () => setIsLoggedIn(!!localStorage.getItem('userToken'));
+    window.addEventListener('userAuthChanged', syncAuth);
+    window.addEventListener('storage', syncAuth);
+    return () => {
+      window.removeEventListener('userAuthChanged', syncAuth);
+      window.removeEventListener('storage', syncAuth);
+    };
+  }, []);
+
   const [activeGame, setActiveGame] = useState('CRICKET');
-  const [showModal, setShowModal] = useState(false);
-  const [cities, setCities] = useState([]);
-  const [allVenues, setAllVenues] = useState([]);
-  const [venues, setVenues] = useState([]);
+  const [bookingLoading, setBookingLoading] = useState(false);
+  const [bookingSuccess, setBookingSuccess] = useState('');
+  const [bookingError, setBookingError] = useState('');
   const [turfs, setTurfs] = useState([]);
-  const [slots, setSlots] = useState([]);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     date: getTodayDate(),
-    cityId: '',
-    venueId: '',
     turfId: '',
-    groundType: '',
-    selectedSlots: []
+    fromTime: '',
+    toTime: '',
+    bringGuests: false,
+    guestCount: ''
   });
 
   const games = [
@@ -36,87 +46,16 @@ const BookingForm = () => {
     { id: 'TENNIS', name: 'Tennis', icon: '/assets/images/g6.png' }
   ];
 
-  // Fetch cities on mount
+  // Fetch turfs by sport type on mount and when game changes
   useEffect(() => {
-    fetchCities();
-  }, []);
+    fetchTurfs(activeGame);
+    setFormData(prev => ({ ...prev, turfId: '', fromTime: '', toTime: '' }));
+  }, [activeGame]);
 
-  // Fetch venues when city changes
-  useEffect(() => {
-    if (formData.cityId) {
-      fetchVenues(formData.cityId);
-    }
-  }, [formData.cityId]);
-
-  // Filter venues when sport changes
-  useEffect(() => {
-    if (allVenues.length > 0) {
-      filterVenuesBySport();
-    }
-  }, [activeGame, allVenues]);
-
-  // Fetch turfs when venue or sport changes
-  useEffect(() => {
-    if (formData.venueId) {
-      fetchTurfs(formData.venueId, activeGame);
-    }
-  }, [formData.venueId, activeGame]);
-
-  // Fetch slots when turf and date change
-  useEffect(() => {
-    if (formData.turfId && formData.date) {
-      fetchSlots(formData.turfId, formData.date);
-    }
-  }, [formData.turfId, formData.date]);
-
-  const fetchCities = async () => {
-    try {
-      const response = await api.get('/api/cities');
-      setCities(response.data.cities || []);
-    } catch (error) {
-      console.error('Error fetching cities:', error);
-    }
-  };
-
-  const fetchVenues = async (cityId) => {
+  const fetchTurfs = async (sportType) => {
     try {
       setLoading(true);
-      const response = await api.get(`/api/venues/city/${cityId}`);
-      setAllVenues(response.data.venues || []);
-      // Filter immediately after fetching
-      const filteredVenues = (response.data.venues || []).filter(venue => 
-        venue.turfs && venue.turfs.some(turf => turf.sportType === activeGame)
-      );
-      setVenues(filteredVenues);
-    } catch (error) {
-      console.error('Error fetching venues:', error);
-      setAllVenues([]);
-      setVenues([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const filterVenuesBySport = () => {
-    const filteredVenues = allVenues.filter(venue => 
-      venue.turfs && venue.turfs.some(turf => turf.sportType === activeGame)
-    );
-    setVenues(filteredVenues);
-    // Reset venue selection if current venue doesn't have the sport
-    if (formData.venueId) {
-      const isVenueValid = filteredVenues.some(v => v._id === formData.venueId);
-      if (!isVenueValid) {
-        setFormData(prev => ({ ...prev, venueId: '', turfId: '' }));
-        setTurfs([]);
-        setSlots([]);
-      }
-    }
-  };
-
-  const fetchTurfs = async (venueId, sportType) => {
-    try {
-      setLoading(true);
-      const response = await api.get(`/api/turfs?venueId=${venueId}&sportType=${sportType}`);
+      const response = await api.get(`/api/turfs?sportType=${sportType}`);
       setTurfs(response.data.turfs || []);
     } catch (error) {
       console.error('Error fetching turfs:', error);
@@ -126,60 +65,47 @@ const BookingForm = () => {
     }
   };
 
-  const fetchSlots = async (turfId, date) => {
-    try {
-      setLoading(true);
-      const response = await api.get(`/api/slots?turfId=${turfId}&date=${date}`);
-      console.log('Fetched slots:', response.data.slots);
-      setSlots(response.data.slots || []);
-    } catch (error) {
-      console.error('Error fetching slots:', error);
-      setSlots([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSlotToggle = (slot) => {
-    setFormData(prev => {
-      const isSelected = prev.selectedSlots.some(s => s._id === slot._id);
-      if (isSelected) {
-        return { ...prev, selectedSlots: prev.selectedSlots.filter(s => s._id !== slot._id) };
-      } else {
-        return { ...prev, selectedSlots: [...prev.selectedSlots, slot] };
-      }
-    });
-  };
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (formData.selectedSlots.length === 0) {
-      alert('Please select at least one time slot');
+    if (!formData.fromTime || !formData.toTime) {
+      setBookingError('Please select From Time and To Time');
       return;
     }
-    setShowModal(true);
-  };
-
-  const isSlotSelected = (slot) => {
-    return formData.selectedSlots.some(s => s._id === slot._id);
-  };
-
-  const calculateSlotPrice = (slot) => {
-    if (!slot.turf || !slot.turf.pricePerHour) return 0;
-    
-    // If slot has slotDurationMinutes from turf, use that
-    if (slot.turf.slotDurationMinutes) {
-      const durationHours = slot.turf.slotDurationMinutes / 60;
-      return Math.round(slot.turf.pricePerHour * durationHours);
+    if (formData.fromTime >= formData.toTime) {
+      setBookingError('To Time must be after From Time');
+      return;
     }
-    
-    // Otherwise calculate from start and end time
-    const [startHour, startMin] = slot.startTime.split(':').map(Number);
-    const [endHour, endMin] = slot.endTime.split(':').map(Number);
-    const durationMinutes = (endHour * 60 + endMin) - (startHour * 60 + startMin);
-    const durationHours = durationMinutes / 60;
-    
-    return Math.round(slot.turf.pricePerHour * durationHours);
+    if (formData.turfId === 'big-turf') {
+      const [fromH, fromM] = formData.fromTime.split(':').map(Number);
+      const [toH, toM] = formData.toTime.split(':').map(Number);
+      const durationMinutes = (toH * 60 + toM) - (fromH * 60 + fromM);
+      if (durationMinutes < 120) {
+        setBookingError('Big Turf requires a minimum booking of 2 hours');
+        return;
+      }
+    }
+    setBookingLoading(true);
+    setBookingError('');
+    setBookingSuccess('');
+    try {
+      await api.post('/api/form-bookings', {
+        sport: activeGame,
+        turfId: formData.turfId,
+        bookingDate: formData.date,
+        fromTime: formData.fromTime,
+        toTime: formData.toTime,
+        bringGuests: formData.bringGuests,
+        guestCount: formData.guestCount
+      }, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('userToken')}` }
+      });
+      setBookingSuccess('Booking confirmed successfully!');
+      setFormData(prev => ({ ...prev, turfId: '', fromTime: '', toTime: '', bringGuests: false, guestCount: '' }));
+    } catch (err) {
+      setBookingError(err.response?.data?.message || 'Booking failed. Please try again.');
+    } finally {
+      setBookingLoading(false);
+    }
   };
 
   return (
@@ -231,52 +157,32 @@ const BookingForm = () => {
                     </div>
                     <div className="col-lg">
                       <div className="form-group">
-                        <label htmlFor="b_city" className="form-label">
-                          Select Cities
+                        <label htmlFor="b_from" className="form-label">
+                          From Time
                         </label>
-                        <select
-                          className="form-select form-control"
-                          value={formData.cityId}
-                          onChange={(e) => {
-                            setFormData({ ...formData, cityId: e.target.value, venueId: '', turfId: '' });
-                            setVenues([]);
-                            setTurfs([]);
-                            setSlots([]);
-                          }}
+                        <input
+                          type="time"
+                          className="form-control"
+                          id="b_from"
+                          value={formData.fromTime}
+                          onChange={(e) => setFormData({ ...formData, fromTime: e.target.value })}
                           required
-                        >
-                          <option value="">Select City</option>
-                          {cities.map((city) => (
-                            <option key={city._id} value={city._id}>
-                              {city.name}
-                            </option>
-                          ))}
-                        </select>
+                        />
                       </div>
                     </div>
                     <div className="col-lg">
                       <div className="form-group">
-                        <label htmlFor="b_venue" className="form-label">
-                          Select Venues
+                        <label htmlFor="b_to" className="form-label">
+                          To Time
                         </label>
-                        <select
-                          className="form-select form-control"
-                          value={formData.venueId}
-                          onChange={(e) => {
-                            setFormData({ ...formData, venueId: e.target.value, turfId: '' });
-                            setTurfs([]);
-                            setSlots([]);
-                          }}
+                        <input
+                          type="time"
+                          className="form-control"
+                          id="b_to"
+                          value={formData.toTime}
+                          onChange={(e) => setFormData({ ...formData, toTime: e.target.value })}
                           required
-                          disabled={!formData.cityId}
-                        >
-                          <option value="">Select Venue</option>
-                          {venues.map((venue) => (
-                            <option key={venue._id} value={venue._id}>
-                              {venue.name}
-                            </option>
-                          ))}
-                        </select>
+                        />
                       </div>
                     </div>
                     <div className="col-lg">
@@ -289,143 +195,89 @@ const BookingForm = () => {
                           value={formData.turfId}
                           onChange={(e) => {
                             setFormData({ ...formData, turfId: e.target.value });
-                            setSlots([]);
                           }}
                           required
-                          disabled={!formData.venueId}
                         >
                           <option value="">Select Turf</option>
-                          {turfs.map((turf) => (
-                            <option key={turf._id} value={turf._id}>
-                              {turf.name}
-                            </option>
-                          ))}
+                          <option value="badminton-1">Badminton 1</option>
+                          <option value="badminton-2">Badminton 2</option>
+                          <option value="pickleball-1">Pickleball 1</option>
+                          <option value="pickleball-2">Pickleball 2</option>
+                          <option value="tennis-1">Tennis 1</option>
+                          <option value="tennis-2">Tennis 2</option>
+                          <option value="futsal-turf">Futsal Turf</option>
+                          <option value="big-turf">Big Turf</option>
                         </select>
                       </div>
                     </div>
                   </div>
 
-                  {formData.turfId && (
-                    <div className="ground-part">
-                      <div className="row top-part justify-content-between">
-                        <div className="col-auto">
-                          <h4>
-                            {turfs.find(t => t._id === formData.turfId)?.name || activeGame}
-                          </h4>
-                          <div className="form-group">
-                            <div className="form-check">
-                              <input
-                                className="form-check-input"
-                                type="radio"
-                                name="ground"
-                                id="halfground"
-                                value="half"
-                                onChange={(e) => setFormData({ ...formData, groundType: e.target.value })}
-                              />
-                              <label className="form-check-label" htmlFor="halfground">
-                                Half Ground
-                              </label>
-                            </div>
-                            <div className="form-check">
-                              <input
-                                className="form-check-input"
-                                type="radio"
-                                name="ground"
-                                id="fullground"
-                                value="full"
-                                onChange={(e) => setFormData({ ...formData, groundType: e.target.value })}
-                              />
-                              <label className="form-check-label" htmlFor="fullground">
-                                Full Ground
-                              </label>
-                            </div>
-                          </div>
+                  <div className="mt-4">
+                    <div className="form-check">
+                      <input
+                        className="form-check-input"
+                        type="checkbox"
+                        id="bringGuests"
+                        checked={formData.bringGuests}
+                        onChange={(e) => setFormData({ ...formData, bringGuests: e.target.checked, guestCount: e.target.checked ? 1 : '' })}
+                      />
+                      <label className="form-check-label" htmlFor="bringGuests">
+                        Do you want to bring guests?
+                      </label>
+                    </div>
+                    {formData.bringGuests && (
+                      <div className="d-flex gap-3 mt-3 align-items-end flex-wrap">
+                        <div className="form-group" style={{ maxWidth: '180px' }}>
+                          <label htmlFor="guestCount" className="form-label">Number of Guests</label>
+                          <input
+                            type="number"
+                            className="form-control"
+                            id="guestCount"
+                            min="1"
+                            value={formData.guestCount}
+                            onChange={(e) => setFormData({ ...formData, guestCount: e.target.value })}
+                            placeholder="e.g. 5"
+                            required
+                          />
+                        </div>
+                        <div className="form-group" style={{ maxWidth: '180px' }}>
+                          <label className="form-label">Guest Charges</label>
+                          <input
+                            type="text"
+                            className="form-control"
+                            value={formData.guestCount > 0 ? `₹${formData.guestCount * 500}` : '₹0'}
+                            disabled
+                          />
                         </div>
                       </div>
-
-                      <div className="time-slot-main">
-                      <h4>
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{display: 'inline-block', verticalAlign: 'middle', marginRight: '8px'}}>
-                          <circle cx="12" cy="12" r="10"></circle>
-                          <polyline points="12 6 12 12 16 14"></polyline>
-                        </svg> Available Time Slots
-                      </h4>
-                      {loading ? (
-                        <div className="text-center p-4">
-                          <div className="spinner-border text-primary" role="status">
-                            <span className="visually-hidden">Loading...</span>
-                          </div>
-                        </div>
-                      ) : slots.length === 0 ? (
-                        <p className="text-center p-4">No slots available. Please select date and turf.</p>
-                      ) : (
-                        <div className="time-slots">
-                          {slots.map((slot) => (
-                            <div 
-                              className={`form-check ${isSlotSelected(slot) ? 'selected-slot' : ''}`} 
-                              key={slot._id}
-                            >
-                              <input
-                                className="form-check-input"
-                                type="checkbox"
-                                name="time_slot"
-                                id={`slot-${slot._id}`}
-                                checked={isSlotSelected(slot)}
-                                onChange={() => handleSlotToggle(slot)}
-                                disabled={slot.status !== 'AVAILABLE'}
-                              />
-                              <label className="form-check-label" htmlFor={`slot-${slot._id}`}>
-                                {slot.startTime} - {slot.endTime}
-                                <br />
-                                <span>₹{calculateSlotPrice(slot)}</span>
-                              </label>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
+                    )}
                   </div>
-                  )}
+
                 </div>
               </div>
             </div>
 
             <div className="w-100 text-center mt-5">
-              <button type="submit" className="btn btn-secondary">
-                Book Now
-              </button>
+              {bookingSuccess && <div className="alert alert-success mb-3">{bookingSuccess}</div>}
+              {bookingError && <div className="alert alert-danger mb-3">{bookingError}</div>}
+              <span
+                title={!isLoggedIn ? 'Please login to access' : ''}
+                style={{ display: 'inline-block', cursor: !isLoggedIn ? 'not-allowed' : 'default' }}
+              >
+                <button
+                  type="submit"
+                  className="btn btn-secondary"
+                  disabled={!isLoggedIn || bookingLoading}
+                  style={{ pointerEvents: !isLoggedIn ? 'none' : 'auto' }}
+                >
+                  {bookingLoading ? 'Booking...' : 'Book Now'}
+                </button>
+              </span>
             </div>
           </form>
         </div>
       </div>
 
-      {/* Modal */}
-      {showModal && (
-        <div className="modal fade show booking-modal" style={{ display: 'block' }} tabIndex="-1">
-          <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content">
-              <div className="modal-header" style={{ backgroundColor: '#08295E', color: 'white' }}>
-                <h3 className="modal-title fs-5">Personal Information</h3>
-                <button
-                  type="button"
-                  className="btn-close btn-close-white"
-                  onClick={() => setShowModal(false)}
-                  aria-label="Close"
-                ></button>
-              </div>
-              <div className="modal-body">
-                <div className="form-area">
-                  <input type="text" className="form-control" placeholder="Full Name" required />
-                  <input type="tel" className="form-control" placeholder="Phone Number" required />
-                  <input type="email" className="form-control" placeholder="Email Address" required />
-                  <input type="submit" value="Submit" className="btn btn-secondary" />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-      {showModal && <div className="modal-backdrop fade show" onClick={() => setShowModal(false)}></div>}
     </section>
   );
 };

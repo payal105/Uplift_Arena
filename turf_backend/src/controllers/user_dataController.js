@@ -1,23 +1,24 @@
-const User = require("../models/User");
+const UserData = require("../models/UserData");
 const bcrypt = require("bcryptjs");
 const { generateToken } = require("../utils/jwt");
 
-// User Registration
+// Register
 exports.register = async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
-    // Check if user exists by email
-    const existingUser = await User.findOne({ email });
+    if (!name || !email || !password) {
+      return res.status(400).json({ message: "Name, email and password are required" });
+    }
+
+    const existingUser = await UserData.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: "Email already registered" });
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user
-    const user = await User.create({
+    const user = await UserData.create({
       name,
       email,
       password: hashedPassword,
@@ -40,14 +41,12 @@ exports.register = async (req, res) => {
   }
 };
 
-// User Login
+// Login
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Find user by email
-    const user = await User.findOne({ email });
-    
+    const user = await UserData.findOne({ email });
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -56,7 +55,6 @@ exports.login = async (req, res) => {
       return res.status(403).json({ message: "Account is inactive" });
     }
 
-    // Check password
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       return res.status(401).json({ message: "Invalid credentials" });
@@ -78,26 +76,25 @@ exports.login = async (req, res) => {
   }
 };
 
-// Get User Profile
+// Get Profile
 exports.getProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.userId).select("-password");
+    const user = await UserData.findById(req.userId).select("-password");
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-
     res.json({ user });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-// Update User Profile
+// Update Profile
 exports.updateProfile = async (req, res) => {
   try {
     const { name, email } = req.body;
 
-    const user = await User.findByIdAndUpdate(
+    const user = await UserData.findByIdAndUpdate(
       req.userId,
       { name, email },
       { new: true, select: "-password" }

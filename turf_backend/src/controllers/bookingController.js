@@ -42,7 +42,7 @@ exports.createBooking = async (req, res) => {
       user: req.userId || null,
       bookingDate,
       customerName: req.user?.name || 'Guest',
-      phone: req.user?.phone || '',
+      phone: req.body.phone || 'N/A',
       totalAmount: slot.price || 0,
       bookingType: "ONLINE",
       paymentStatus: "SUCCESS",

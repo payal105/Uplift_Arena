@@ -16,7 +16,6 @@ const Login = () => {
   const [signupData, setSignupData] = useState({
     fullName: '',
     email: '',
-    mobile: '',
     password: '',
     confirmPassword: '',
   });
@@ -37,7 +36,7 @@ const Login = () => {
     setLoginLoading(true);
     setLoginError('');
     try {
-      const res = await api.post('/api/users/login', {
+      const res = await api.post('/api/user_data/login', {
         email: loginData.email,
         password: loginData.password,
       });
@@ -62,10 +61,9 @@ const Login = () => {
   };
 
   const validateSignup = () => {
-    const { fullName, email, mobile, password, confirmPassword } = signupData;
+    const { fullName, email, password, confirmPassword } = signupData;
     if (!fullName.trim()) return 'Full name is required.';
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return 'Enter a valid email address.';
-    if (!/^[6-9]\d{9}$/.test(mobile)) return 'Enter a valid 10-digit mobile number.';
     if (password.length < 6) return 'Password must be at least 6 characters.';
     if (password !== confirmPassword) return 'Passwords do not match.';
     return null;
@@ -80,14 +78,13 @@ const Login = () => {
     setSignupError('');
     setSignupSuccess('');
     try {
-      await api.post('/api/users/register', {
+      await api.post('/api/user_data/register', {
         name: signupData.fullName,
         email: signupData.email,
-        phone: signupData.mobile,
         password: signupData.password,
       });
       setSignupSuccess('Account created successfully! Please log in.');
-      setSignupData({ fullName: '', email: '', mobile: '', password: '', confirmPassword: '' });
+      setSignupData({ fullName: '', email: '', password: '', confirmPassword: '' });
       setTimeout(() => setActiveTab('login'), 1500);
     } catch (err) {
       setSignupError(
@@ -263,26 +260,7 @@ const Login = () => {
                       />
                     </div>
 
-                    <div className="mb-3">
-                      <label htmlFor="mobile" className="form-label">
-                        Mobile Number <span className="text-danger">*</span>
-                      </label>
-                      <div className="input-group">
-                        <span className="input-group-text">+91</span>
-                        <input
-                          type="tel"
-                          className="form-control"
-                          id="mobile"
-                          name="mobile"
-                          placeholder="10-digit mobile number"
-                          value={signupData.mobile}
-                          onChange={handleSignupChange}
-                          maxLength={10}
-                          required
-                          autoComplete="tel"
-                        />
-                      </div>
-                    </div>
+
 
                     <div className="mb-3">
                       <label htmlFor="signupPassword" className="form-label">
