@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://sportitude-bms-sage.vercel.app';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://uplift-arena-lmg1.vercel.app';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
