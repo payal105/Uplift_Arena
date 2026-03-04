@@ -19,6 +19,7 @@ exports.createFormBooking = async (req, res) => {
       sport,
       turfId,
       bookingDate,
+      toDate: clientToDate,
       fromTime,
       toTime,
       bringGuests,
@@ -29,15 +30,27 @@ exports.createFormBooking = async (req, res) => {
       return res.status(400).json({ message: "turfId, bookingDate, fromTime and toTime are required" });
     }
 
+    // Compute toDate: if toTime <= fromTime, booking crosses midnight → next day
+    const computeToDate = (date, from, to) => {
+      if (to <= from) {
+        const [y, m, d] = date.split('-').map(Number);
+        const next = new Date(y, m - 1, d + 1);
+        return `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, '0')}-${String(next.getDate()).padStart(2, '0')}`;
+      }
+      return date;
+    };
+    const toDate = clientToDate || computeToDate(bookingDate, fromTime, toTime);
+
     const customerName = req.user?.name || 'Guest';
     const email = req.user?.email || '';
     const phone = req.user?.phone || 'N/A';
 
-    // Enforce Big Turf minimum 2 hours
+    // Enforce Big Turf minimum 2 hours (handles midnight-crossing)
     if (turfId === 'big-turf') {
       const [fH, fM] = fromTime.split(':').map(Number);
       const [tH, tM] = toTime.split(':').map(Number);
-      const durationMinutes = (tH * 60 + tM) - (fH * 60 + fM);
+      let durationMinutes = (tH * 60 + tM) - (fH * 60 + fM);
+      if (durationMinutes <= 0) durationMinutes += 24 * 60;
       if (durationMinutes < 120) {
         return res.status(400).json({ message: "Big Turf requires a minimum booking of 2 hours" });
       }
@@ -72,6 +85,7 @@ exports.createFormBooking = async (req, res) => {
       turfId,
       turfName: TURF_LABELS[turfId] || turfId,
       bookingDate,
+      toDate,
       fromTime,
       toTime,
       bringGuests: !!bringGuests,

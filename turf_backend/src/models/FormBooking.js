@@ -21,6 +21,8 @@ const formBookingSchema = new mongoose.Schema({
 
   bookingDate: { type: String, required: true },
 
+  toDate: { type: String },  // auto-computed: same as bookingDate or next day if booking crosses midnight
+
   fromTime: { type: String, required: true },
 
   toTime: { type: String, required: true },

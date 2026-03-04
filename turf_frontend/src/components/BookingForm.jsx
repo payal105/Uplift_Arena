@@ -11,6 +11,17 @@ const BookingForm = () => {
     return `${year}-${month}-${day}`;
   };
 
+  // Compute toDate: if toTime <= fromTime, booking crosses midnight → next day
+  const computeToDate = (date, fromTime, toTime) => {
+    if (!date || !fromTime || !toTime) return date || '';
+    if (toTime <= fromTime) {
+      const [y, m, d] = date.split('-').map(Number);
+      const nextDay = new Date(y, m - 1, d + 1);
+      return `${nextDay.getFullYear()}-${String(nextDay.getMonth() + 1).padStart(2, '0')}-${String(nextDay.getDate()).padStart(2, '0')}`;
+    }
+    return date;
+  };
+
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('userToken'));
 
   useEffect(() => {
@@ -71,14 +82,13 @@ const BookingForm = () => {
       setBookingError('Please select From Time and To Time');
       return;
     }
-    if (formData.fromTime >= formData.toTime) {
-      setBookingError('To Time must be after From Time');
-      return;
-    }
+    const toDate = computeToDate(formData.date, formData.fromTime, formData.toTime);
     if (formData.turfId === 'big-turf') {
       const [fromH, fromM] = formData.fromTime.split(':').map(Number);
-      const [toH, toM] = formData.toTime.split(':').map(Number);
-      const durationMinutes = (toH * 60 + toM) - (fromH * 60 + fromM);
+      let [toH, toM] = formData.toTime.split(':').map(Number);
+      let durationMinutes = (toH * 60 + toM) - (fromH * 60 + fromM);
+      // If toTime <= fromTime, booking crosses midnight — add 24h
+      if (durationMinutes <= 0) durationMinutes += 24 * 60;
       if (durationMinutes < 120) {
         setBookingError('Big Turf requires a minimum booking of 2 hours');
         return;
@@ -92,6 +102,7 @@ const BookingForm = () => {
         sport: activeGame,
         turfId: formData.turfId,
         bookingDate: formData.date,
+        toDate,
         fromTime: formData.fromTime,
         toTime: formData.toTime,
         bringGuests: formData.bringGuests,
@@ -143,7 +154,7 @@ const BookingForm = () => {
                     <div className="col-lg">
                       <div className="form-group">
                         <label htmlFor="b_date" className="form-label">
-                          Select Date
+                          Date
                         </label>
                         <input
                           type="date"
@@ -184,6 +195,14 @@ const BookingForm = () => {
                           required
                         />
                       </div>
+                    </div>
+                    <div style={{ display: 'none' }}>
+                      <input
+                        type="date"
+                        id="b_todate"
+                        value={computeToDate(formData.date, formData.fromTime, formData.toTime)}
+                        readOnly
+                      />
                     </div>
                     <div className="col-lg">
                       <div className="form-group">

@@ -23,6 +23,7 @@ const sendBookingConfirmationEmail = async (booking, recipientEmail) => {
     turfName,
     sport,
     bookingDate,
+    toDate,
     fromTime,
     toTime,
     guestCount,
@@ -30,12 +31,29 @@ const sendBookingConfirmationEmail = async (booking, recipientEmail) => {
     status,
   } = booking;
 
-  const formattedDate = new Date(bookingDate).toLocaleDateString("en-IN", {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+  // Format YYYY-MM-DD → DD-MM-YYYY
+  const formatDate = (dateStr) => {
+    if (!dateStr) return '';
+    const [y, m, d] = dateStr.split('-');
+    return `${d}-${m}-${y}`;
+  };
+
+  // Format HH:mm → h:mm AM/PM
+  const formatTime = (timeStr) => {
+    if (!timeStr) return '';
+    const [hStr, mStr] = timeStr.split(':');
+    let h = parseInt(hStr, 10);
+    const m = mStr || '00';
+    const period = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12;
+    return `${h}:${m} ${period}`;
+  };
+
+  // Show "DD-MM-YYYY" if same day, else "DD-MM-YYYY – DD-MM-YYYY"
+  const formattedDateRange =
+    !toDate || toDate === bookingDate
+      ? formatDate(bookingDate)
+      : `${formatDate(bookingDate)} – ${formatDate(toDate)}`;
 
   const guestSection =
     guestCount > 0
@@ -91,11 +109,11 @@ const sendBookingConfirmationEmail = async (booking, recipientEmail) => {
                       </tr>
                       <tr>
                         <td style="padding: 8px 12px; border-bottom: 1px solid #eee; color: #555;">Date</td>
-                        <td style="padding: 8px 12px; border-bottom: 1px solid #eee; font-weight: 600;">${bookingDate}</td>
+                        <td style="padding: 8px 12px; border-bottom: 1px solid #eee; font-weight: 600;">${formattedDateRange}</td>
                       </tr>
                       <tr>
                         <td style="padding: 8px 12px; border-bottom: 1px solid #eee; color: #555;">Time Slot</td>
-                        <td style="padding: 8px 12px; border-bottom: 1px solid #eee; font-weight: 600;">${fromTime} – ${toTime}</td>
+                        <td style="padding: 8px 12px; border-bottom: 1px solid #eee; font-weight: 600;">${formatTime(fromTime)} – ${formatTime(toTime)}</td>
                       </tr>
                       ${guestSection}
                       <tr>
@@ -133,7 +151,7 @@ const sendBookingConfirmationEmail = async (booking, recipientEmail) => {
   await transporter.sendMail({
     from: `"Uplift Sports Arena" <${process.env.EMAIL_USER}>`,
     to: toEmail,
-    subject: `Booking Confirmed – ${turfName} on ${bookingDate}`,
+    subject: `Booking Confirmed – ${turfName} on ${formatDate(bookingDate)}`,
     html: htmlContent,
   });
 };

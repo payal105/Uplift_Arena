@@ -423,6 +423,17 @@
   font-weight: 600;
   border-radius: 8px;
   letter-spacing: 0.3px;
+  background-color: #08295E;
+  border-color: #08295E;
+  color: #ffffff;
+}
+
+.auth-form .btn-primary:hover,
+.auth-form .btn-primary:focus,
+.auth-form .btn-primary:active {
+  background-color: #061e46;
+  border-color: #061e46;
+  color: #ffffff;
 }
 
 .switch-text {
