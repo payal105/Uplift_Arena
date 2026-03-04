@@ -1,12 +1,17 @@
 const nodemailer = require("nodemailer");
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
+const createTransporter = () => {
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+    throw new Error("EMAIL_USER or EMAIL_PASS environment variable is not set");
+  }
+  return nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
+    },
+  });
+};
 
 /**
  * Sends a booking confirmation email to the user.
@@ -148,7 +153,7 @@ const sendBookingConfirmationEmail = async (booking, recipientEmail) => {
     </html>
   `;
 
-  await transporter.sendMail({
+  await createTransporter().sendMail({
     from: `"Uplift Sports Arena" <${process.env.EMAIL_USER}>`,
     to: toEmail,
     subject: `Booking Confirmed – ${turfName} on ${formatDate(bookingDate)}`,
