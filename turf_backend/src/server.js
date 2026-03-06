@@ -5,18 +5,28 @@ require("dotenv").config({
 });
 
 const app = require("./app");
-const connectDB = require("./config/db");
 
-connectDB();
+// On Vercel (serverless), export the app as the handler.
+// Locally, start the HTTP server normally.
+if (process.env.VERCEL) {
+  module.exports = app;
+} else {
+  const connectDB = require("./config/db");
 
-const PORT = process.env.PORT || 5000;
+  connectDB()
+    .then(() => {
+      const PORT = process.env.PORT || 5000;
+      const server = app.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
+        console.log(`API available at http://localhost:${PORT}/api`);
+      });
 
-const server = app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log(`API available at http://localhost:${PORT}/api`);
-});
-
-// Handle errors
-server.on('error', (error) => {
-  console.error('Server error:', error);
-});
+      server.on("error", (error) => {
+        console.error("Server error:", error);
+      });
+    })
+    .catch((error) => {
+      console.error("Failed to connect to DB, server not started:", error.message);
+      process.exit(1);
+    });
+}
