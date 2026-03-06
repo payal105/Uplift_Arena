@@ -93,11 +93,13 @@ exports.createFormBooking = async (req, res) => {
       guestCharges
     });
 
-    // Send confirmation email to the logged-in user's email (non-blocking)
+    // Send confirmation email to the logged-in user's email
     const userEmail = req.user?.email || booking.email;
-    sendBookingConfirmationEmail(booking, userEmail).catch((err) =>
-      console.error("Email send failed:", err.message)
-    );
+    try {
+      await sendBookingConfirmationEmail(booking, userEmail);
+    } catch (err) {
+      console.error("Email send failed:", err.message);
+    }
 
     res.status(201).json({
       message: "Booking confirmed successfully",
