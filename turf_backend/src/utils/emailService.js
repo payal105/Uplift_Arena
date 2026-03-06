@@ -5,11 +5,14 @@ const createTransporter = () => {
     throw new Error("EMAIL_USER or EMAIL_PASS environment variable is not set");
   }
   return nodemailer.createTransport({
-    service: "gmail",
+    service: "smtp.gmail.com",
+    port: 465,
+    secure: true,
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS,
     },
+     connectionTimeout: 5000
   });
 };
 
