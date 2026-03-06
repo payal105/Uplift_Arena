@@ -19,19 +19,6 @@ const createTransporter = () => {
   return transporter;
 };
 
-try {
-  const info = await createTransporter().sendMail({
-    from: `"Uplift Sports Arena" <${process.env.EMAIL_USER}>`,
-    to: toEmail,
-    subject: `Booking Confirmed – ${turfName} on ${formatDate(bookingDate)}`,
-    html: htmlContent,
-  });
-
-  console.log("Email sent:", info.response);
-} catch (error) {
-  console.error("Email sending failed:", error);
-}
-
 /**
  * Sends a booking confirmation email to the user.
  * @param {Object} booking - The booking document

@@ -35,7 +35,7 @@ app.use(
     optionsSuccessStatus: 204,
   })
 );
-app.options("*", cors()); // Handle preflight for all routes
+app.options(/(.*)/, cors()); // Handle preflight for all routes
 
 // Ensure DB is connected on every request (serverless-safe)
 app.use(async (req, res, next) => {
