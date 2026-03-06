@@ -4,17 +4,33 @@ const createTransporter = () => {
   if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
     throw new Error("EMAIL_USER or EMAIL_PASS environment variable is not set");
   }
-  return nodemailer.createTransport({
-    service: "smtp.gmail.com",
+
+  const transporter = nodemailer.createTransport({
+    host: "smtp.gmail.com",   // ✅ use host instead of service
     port: 465,
     secure: true,
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS,
     },
-     connectionTimeout: 5000
+    connectionTimeout: 5000,
   });
+
+  return transporter;
 };
+
+try {
+  const info = await createTransporter().sendMail({
+    from: `"Uplift Sports Arena" <${process.env.EMAIL_USER}>`,
+    to: toEmail,
+    subject: `Booking Confirmed – ${turfName} on ${formatDate(bookingDate)}`,
+    html: htmlContent,
+  });
+
+  console.log("Email sent:", info.response);
+} catch (error) {
+  console.error("Email sending failed:", error);
+}
 
 /**
  * Sends a booking confirmation email to the user.
