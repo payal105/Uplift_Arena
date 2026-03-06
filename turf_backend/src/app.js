@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
+const connectDB = require("./config/db");
 
 const app = express();
 
@@ -35,6 +36,17 @@ app.use(
   })
 );
 app.options("*", cors()); // Handle preflight for all routes
+
+// Ensure DB is connected on every request (serverless-safe)
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    console.error("DB connection error:", error.message);
+    res.status(503).json({ message: "Database unavailable. Please try again." });
+  }
+});
 
 // Serve static files for uploaded images
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
