@@ -66,6 +66,8 @@ const sendBookingConfirmationEmail = async (booking, recipientEmail) => {
       ? formatDate(bookingDate)
       : `${formatDate(bookingDate)} – ${formatDate(toDate)}`;
 
+  const siteUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+
   const guestSection =
     guestCount > 0
       ? `
@@ -148,6 +150,9 @@ const sendBookingConfirmationEmail = async (booking, recipientEmail) => {
                 <!-- Footer -->
                 <tr>
                   <td style="background-color:#f0f0f0; padding: 16px 32px; text-align:center;">
+                    <p style="font-size:13px; color:#555; margin:0 0 6px;">
+                      <a href="${siteUrl}" style="color:#1a7a4a; text-decoration:none; font-weight:600;">${siteUrl}</a>
+                    </p>
                     <p style="font-size:12px; color:#aaa; margin:0;">© ${new Date().getFullYear()} Uplift Sports Arena. All rights reserved.</p>
                   </td>
                 </tr>
