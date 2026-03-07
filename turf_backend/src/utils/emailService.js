@@ -37,6 +37,7 @@ const sendBookingConfirmationEmail = async (booking, recipientEmail) => {
     toDate,
     fromTime,
     toTime,
+    slots,
     guestCount,
     guestCharges,
     status,
@@ -59,6 +60,12 @@ const sendBookingConfirmationEmail = async (booking, recipientEmail) => {
     h = h % 12 || 12;
     return `${h}:${m} ${period}`;
   };
+
+  // Build time slot display: list each slot individually if multiple
+  const slotList = Array.isArray(slots) && slots.length > 0 ? slots : [{ startTime: fromTime, endTime: toTime }];
+  const formattedSlots = slotList
+    .map(s => `${formatTime(s.startTime)} – ${formatTime(s.endTime)}`)
+    .join('<br/>');
 
   // Show "DD-MM-YYYY" if same day, else "DD-MM-YYYY – DD-MM-YYYY"
   const formattedDateRange =
@@ -125,8 +132,8 @@ const sendBookingConfirmationEmail = async (booking, recipientEmail) => {
                         <td style="padding: 8px 12px; border-bottom: 1px solid #eee; font-weight: 600;">${formattedDateRange}</td>
                       </tr>
                       <tr>
-                        <td style="padding: 8px 12px; border-bottom: 1px solid #eee; color: #555;">Time Slot</td>
-                        <td style="padding: 8px 12px; border-bottom: 1px solid #eee; font-weight: 600;">${formatTime(fromTime)} – ${formatTime(toTime)}</td>
+                        <td style="padding: 8px 12px; border-bottom: 1px solid #eee; color: #555; vertical-align: top;">Time Slot</td>
+                        <td style="padding: 8px 12px; border-bottom: 1px solid #eee; font-weight: 600;">${formattedSlots}</td>
                       </tr>
                       ${guestSection}
                       <tr>

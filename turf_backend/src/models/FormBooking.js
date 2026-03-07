@@ -23,9 +23,16 @@ const formBookingSchema = new mongoose.Schema({
 
   toDate: { type: String },  // auto-computed: same as bookingDate or next day if booking crosses midnight
 
-  fromTime: { type: String, required: true },
+  fromTime: { type: String, required: true },  // earliest slot start
 
-  toTime: { type: String, required: true },
+  toTime: { type: String, required: true },    // latest slot end
+
+  slots: [
+    {
+      startTime: { type: String, required: true },
+      endTime:   { type: String, required: true }
+    }
+  ],
 
   bringGuests: { type: Boolean, default: false },
 

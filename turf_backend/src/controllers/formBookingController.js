@@ -4,33 +4,44 @@ const { sendBookingConfirmationEmail } = require("../utils/emailService");
 const TURF_LABELS = {
   'badminton-1': 'Badminton 1',
   'badminton-2': 'Badminton 2',
+  'badminton-court1': 'Badminton (Court 1)',
+  'badminton-court4': 'Badminton (Court 4)',
   'pickleball-1': 'Pickleball 1',
   'pickleball-2': 'Pickleball 2',
+  'pickleball-court2': 'Pickleball (Court 2)',
+  'pickleball-court3': 'Pickleball (Court 3)',
   'tennis-1': 'Tennis 1',
   'tennis-2': 'Tennis 2',
+  'tennis-court1': 'Tennis (Court 1)',
+  'tennis-court2': 'Tennis (Court 2)',
   'futsal-turf': 'Futsal Turf',
   'big-turf': 'Big Turf'
 };
 
-// Create a form booking
+// Create a form booking (single record, slots stored as array)
 exports.createFormBooking = async (req, res) => {
   try {
     const {
       sport,
       turfId,
       bookingDate,
-      toDate: clientToDate,
-      fromTime,
-      toTime,
+      slots,
       bringGuests,
       guestCount
     } = req.body;
 
-    if (!turfId || !bookingDate || !fromTime || !toTime) {
-      return res.status(400).json({ message: "turfId, bookingDate, fromTime and toTime are required" });
+    if (!turfId || !bookingDate) {
+      return res.status(400).json({ message: "turfId and bookingDate are required" });
     }
 
-    // Compute toDate: if toTime <= fromTime, booking crosses midnight → next day
+    if (!Array.isArray(slots) || slots.length === 0) {
+      return res.status(400).json({ message: "At least one slot is required" });
+    }
+
+    if (slots.some(s => !s.startTime || !s.endTime)) {
+      return res.status(400).json({ message: "Each slot must have startTime and endTime" });
+    }
+
     const computeToDate = (date, from, to) => {
       if (to <= from) {
         const [y, m, d] = date.split('-').map(Number);
@@ -39,41 +50,46 @@ exports.createFormBooking = async (req, res) => {
       }
       return date;
     };
-    const toDate = clientToDate || computeToDate(bookingDate, fromTime, toTime);
 
     const customerName = req.user?.name || 'Guest';
     const email = req.user?.email || '';
     const phone = req.user?.phone || 'N/A';
+    const guests = bringGuests ? Math.max(1, parseInt(guestCount) || 1) : 0;
+    const guestCharges = guests * 500;
 
-    // Enforce Big Turf minimum 2 hours (handles midnight-crossing)
+    // Sort slots by startTime
+    const sortedSlots = slots.slice().sort((a, b) => a.startTime.localeCompare(b.startTime));
+    const fromTime = sortedSlots[0].startTime;
+    const toTime   = sortedSlots[sortedSlots.length - 1].endTime;
+    const toDate   = computeToDate(bookingDate, fromTime, toTime);
+
+    // Big Turf: total duration across all slots must be >= 2 hours
     if (turfId === 'big-turf') {
-      const [fH, fM] = fromTime.split(':').map(Number);
-      const [tH, tM] = toTime.split(':').map(Number);
-      let durationMinutes = (tH * 60 + tM) - (fH * 60 + fM);
-      if (durationMinutes <= 0) durationMinutes += 24 * 60;
-      if (durationMinutes < 120) {
+      const totalMins = sortedSlots.reduce((sum, s) => {
+        const [fH, fM] = s.startTime.split(':').map(Number);
+        const [tH, tM] = s.endTime.split(':').map(Number);
+        let diff = (tH * 60 + tM) - (fH * 60 + fM);
+        if (diff <= 0) diff += 24 * 60;
+        return sum + diff;
+      }, 0);
+      if (totalMins < 120) {
         return res.status(400).json({ message: "Big Turf requires a minimum booking of 2 hours" });
       }
     }
 
-    const guests = bringGuests ? Math.max(1, parseInt(guestCount) || 1) : 0;
-    const guestCharges = guests * 500;
-
-    // Check for conflicting bookings on the same turf and date
-    const conflict = await FormBooking.findOne({
-      turfId,
-      bookingDate,
-      status: { $ne: 'cancelled' },
-      $and: [
-        { fromTime: { $lt: toTime } },
-        { toTime: { $gt: fromTime } }
-      ]
-    });
-
-    if (conflict) {
-      return res.status(409).json({
-        message: `This turf is already booked from ${conflict.fromTime} to ${conflict.toTime} on ${bookingDate}. Please choose a different time.`
+    // Check conflicts for each slot
+    for (const slot of sortedSlots) {
+      const conflict = await FormBooking.findOne({
+        turfId,
+        bookingDate,
+        status: { $ne: 'cancelled' },
+        slots: { $elemMatch: { startTime: { $lt: slot.endTime }, endTime: { $gt: slot.startTime } } }
       });
+      if (conflict) {
+        return res.status(409).json({
+          message: `This turf is already booked for a slot overlapping ${slot.startTime}–${slot.endTime} on ${bookingDate}.`
+        });
+      }
     }
 
     const booking = await FormBooking.create({
@@ -88,13 +104,14 @@ exports.createFormBooking = async (req, res) => {
       toDate,
       fromTime,
       toTime,
+      slots: sortedSlots,
       bringGuests: !!bringGuests,
       guestCount: guests,
       guestCharges
     });
 
-    // Send confirmation email to the logged-in user's email (non-blocking)
-    const userEmail = req.user?.email || booking.email;
+    // Send confirmation email (non-blocking)
+    const userEmail = req.user?.email || email;
     sendBookingConfirmationEmail(booking, userEmail).catch((err) =>
       console.error("Email send failed:", err.message)
     );

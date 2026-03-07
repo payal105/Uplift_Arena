@@ -3,6 +3,17 @@ import Swal from 'sweetalert2';
 import AdminHeader from '../components/AdminHeader';
 import api from '../api/axios';
 
+const FIXED_SLOTS = [
+  { label: '6:00 - 7:00 AM',   startTime: '06:00', endTime: '07:00' },
+  { label: '7:00 - 8:00 AM',   startTime: '07:00', endTime: '08:00' },
+  { label: '8:00 - 9:00 AM',   startTime: '08:00', endTime: '09:00' },
+  { label: '9:00 - 10:00 AM',  startTime: '09:00', endTime: '10:00' },
+  { label: '5:30 - 6:30 PM',   startTime: '17:30', endTime: '18:30' },
+  { label: '6:30 - 7:30 PM',   startTime: '18:30', endTime: '19:30' },
+  { label: '7:30 - 8:30 PM',   startTime: '19:30', endTime: '20:30' },
+  { label: '8:30 - 9:30 PM',   startTime: '20:30', endTime: '21:30' },
+];
+
 const Slots = ({ onLogout }) => {
   const [slots, setSlots] = useState([]);
   const [turfs, setTurfs] = useState([]);
@@ -15,8 +26,7 @@ const Slots = ({ onLogout }) => {
   const [generateForm, setGenerateForm] = useState({
     turfId: '',
     date: '',
-    startTime: '',
-    endTime: ''
+    slotKey: ''
   });
 
   const [editForm, setEditForm] = useState({
@@ -79,8 +89,19 @@ const Slots = ({ onLogout }) => {
   const handleGenerateSlots = async (e) => {
     e.preventDefault();
 
+    const selectedSlot = FIXED_SLOTS.find(s => s.startTime === generateForm.slotKey);
+    if (!selectedSlot) {
+      Swal.fire({ icon: 'error', title: 'Error', text: 'Please select a time slot' });
+      return;
+    }
+
     try {
-      const response = await api.post('/api/slots/generate', generateForm);
+      const response = await api.post('/api/slots/generate', {
+        turfId: generateForm.turfId,
+        date: generateForm.date,
+        startTime: selectedSlot.startTime,
+        endTime: selectedSlot.endTime
+      });
       
       Swal.fire({
         icon: 'success',
@@ -168,8 +189,7 @@ const Slots = ({ onLogout }) => {
     setGenerateForm({
       turfId: filters.turfId || '',
       date: filters.date || new Date().toISOString().split('T')[0],
-      startTime: '',
-      endTime: ''
+      slotKey: ''
     });
     setShowGenerateModal(true);
   };
@@ -371,27 +391,21 @@ const Slots = ({ onLogout }) => {
                       required
                     />
                   </div>
-                  <div className="row">
-                    <div className="col-md-6 mb-3">
-                      <label className="form-label">Start Time *</label>
-                      <input
-                        type="time"
-                        className="form-control"
-                        value={generateForm.startTime}
-                        onChange={(e) => setGenerateForm({ ...generateForm, startTime: e.target.value })}
-                        required
-                      />
-                    </div>
-                    <div className="col-md-6 mb-3">
-                      <label className="form-label">End Time *</label>
-                      <input
-                        type="time"
-                        className="form-control"
-                        value={generateForm.endTime}
-                        onChange={(e) => setGenerateForm({ ...generateForm, endTime: e.target.value })}
-                        required
-                      />
-                    </div>
+                  <div className="mb-3">
+                    <label className="form-label">Time Slot *</label>
+                    <select
+                      className="form-select"
+                      value={generateForm.slotKey}
+                      onChange={(e) => setGenerateForm({ ...generateForm, slotKey: e.target.value })}
+                      required
+                    >
+                      <option value="">Select a time slot</option>
+                      {FIXED_SLOTS.map((slot) => (
+                        <option key={slot.startTime} value={slot.startTime}>
+                          {slot.label}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </div>
                 <div className="modal-footer">
