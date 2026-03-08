@@ -1,5 +1,7 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import Header from './components/Header';
 import Banner from './components/Banner';
 import About from './components/About';
@@ -12,6 +14,7 @@ import RateCard from './pages/RateCard';
 import Membership from './pages/Membership';
 import Contact from './pages/Contact';
 import Login from './pages/Login';
+import MyBookings from './pages/MyBookings';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import PaymentPolicy from './pages/PaymentPolicy';
 import UsagePolicy from './pages/UsagePolicy';
@@ -48,6 +51,7 @@ function App() {
     <Router>
       <ScrollToTop />
       <div className="wrapper">
+        <ToastContainer position="top-right" autoClose={4000} hideProgressBar={false} closeOnClick pauseOnHover style={{ top: '90px', zIndex: 10000 }} />
         <Header />
         <Routes>
           <Route path="/" element={<HomePage />} />
@@ -56,6 +60,7 @@ function App() {
           <Route path="/membership" element={<Membership />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/my-bookings" element={<MyBookings />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/payment-policy" element={<PaymentPolicy />} />
           <Route path="/usage-policy" element={<UsagePolicy />} />

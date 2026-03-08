@@ -289,10 +289,13 @@
   cursor: pointer;
   transition: background 0.2s, color 0.2s;
   color: #333;
+  text-decoration: none;
 }
 
 .user-dropdown-item:hover {
   background: #f5f7fb;
+  color: #08295E;
+  text-decoration: none;
 }
 
 .user-dropdown-item.logout {

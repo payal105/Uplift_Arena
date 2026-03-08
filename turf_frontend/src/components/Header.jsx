@@ -105,6 +105,11 @@ const Header = () => {
                       </div>
                     </div>
                     <div className="user-dropdown-divider"></div>
+                    <Link to="/my-bookings" className="user-dropdown-item" onClick={() => setDropdownOpen(false)}>
+                      <i className="fa-solid fa-calendar-check me-2"></i>
+                      My Bookings
+                    </Link>
+                    <div className="user-dropdown-divider"></div>
                     <button className="user-dropdown-item logout" onClick={handleLogout}>
                       <i className="fa-solid fa-right-from-bracket me-2"></i>
                       Logout

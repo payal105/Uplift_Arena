@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { toast } from 'react-toastify';
 import api from '../api/axios';
 
 const FIXED_SLOTS = [
@@ -54,6 +55,33 @@ const BookingForm = () => {
     return date;
   };
 
+  // Returns an error string if Big Turf slot selection is invalid, otherwise null
+  const getBigTurfSlotError = (turfId, selectedSlots) => {
+    if (turfId !== 'big-turf' || selectedSlots.length === 0) return null;
+    const sorted = [...selectedSlots].sort();
+    // Check continuity: each slot's endTime must equal the next slot's startTime
+    for (let i = 0; i < sorted.length - 1; i++) {
+      const current = FIXED_SLOTS.find(s => s.startTime === sorted[i]);
+      const next = FIXED_SLOTS.find(s => s.startTime === sorted[i + 1]);
+      if (!current || !next || current.endTime !== next.startTime) {
+        return 'Big Turf requires a continuous booking of minimum 2 hours (no gaps between slots).';
+      }
+    }
+    // Check minimum 2 hours
+    const totalMins = sorted.reduce((sum, startTime) => {
+      const slot = FIXED_SLOTS.find(s => s.startTime === startTime);
+      const [fH, fM] = slot.startTime.split(':').map(Number);
+      const [tH, tM] = slot.endTime.split(':').map(Number);
+      let diff = (tH * 60 + tM) - (fH * 60 + fM);
+      if (diff <= 0) diff += 24 * 60;
+      return sum + diff;
+    }, 0);
+    if (totalMins < 120) {
+      return 'Big Turf requires a continuous booking of minimum 2 hours.';
+    }
+    return null;
+  };
+
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('userToken'));
 
   useEffect(() => {
@@ -67,9 +95,8 @@ const BookingForm = () => {
   }, []);
 
   const [activeGame, setActiveGame] = useState('CRICKET');
+  const formSectionRef = useRef(null);
   const [bookingLoading, setBookingLoading] = useState(false);
-  const [bookingSuccess, setBookingSuccess] = useState('');
-  const [bookingError, setBookingError] = useState('');
   const [formData, setFormData] = useState({
     date: getTodayDate(),
     turfId: '',
@@ -107,27 +134,16 @@ const BookingForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (formData.selectedSlots.length === 0) {
-      setBookingError('Please select at least one time slot');
+      toast.error('Please select at least one time slot');
       return;
     }
-    // Big Turf: total duration across all selected slots must be >= 2 hours
-    if (formData.turfId === 'big-turf') {
-      const totalMins = formData.selectedSlots.reduce((sum, startTime) => {
-        const slot = FIXED_SLOTS.find(s => s.startTime === startTime);
-        const [fH, fM] = slot.startTime.split(':').map(Number);
-        const [tH, tM] = slot.endTime.split(':').map(Number);
-        let diff = (tH * 60 + tM) - (fH * 60 + fM);
-        if (diff <= 0) diff += 24 * 60;
-        return sum + diff;
-      }, 0);
-      if (totalMins < 120) {
-        setBookingError('Big Turf requires a minimum booking of 2 hours');
-        return;
-      }
+    // Big Turf: slots must be continuous and total >= 2 hours
+    const bigTurfErr = getBigTurfSlotError(formData.turfId, formData.selectedSlots);
+    if (bigTurfErr) {
+      toast.error(bigTurfErr);
+      return;
     }
     setBookingLoading(true);
-    setBookingError('');
-    setBookingSuccess('');
     try {
       // Build full slot objects { startTime, endTime } for each selected slot
       const slotObjects = formData.selectedSlots
@@ -137,6 +153,24 @@ const BookingForm = () => {
           const slot = FIXED_SLOTS.find(s => s.startTime === startTime);
           return { startTime: slot.startTime, endTime: slot.endTime };
         });
+
+      // Format date as dd-mm-yyyy
+      const [yyyy, mm, dd] = formData.date.split('-');
+      const formattedDate = `${dd}-${mm}-${yyyy}`;
+
+      // Format slots as AM/PM
+      const formatTime = (time24) => {
+        const [h, m] = time24.split(':').map(Number);
+        const period = h < 12 ? 'AM' : 'PM';
+        const hour = h % 12 === 0 ? 12 : h % 12;
+        return `${hour}:${String(m).padStart(2, '0')} ${period}`;
+      };
+      const sortedSlots = formData.selectedSlots.slice().sort();
+      const firstSlot = FIXED_SLOTS.find(s => s.startTime === sortedSlots[0]);
+      const lastSlot  = FIXED_SLOTS.find(s => s.startTime === sortedSlots[sortedSlots.length - 1]);
+      const timeRange = firstSlot && lastSlot
+        ? `${formatTime(firstSlot.startTime)} - ${formatTime(lastSlot.endTime)}`
+        : '';
 
       const response = await api.post('/api/form-bookings', {
         sport: activeGame,
@@ -148,10 +182,24 @@ const BookingForm = () => {
       }, {
         headers: { Authorization: `Bearer ${localStorage.getItem('userToken')}` }
       });
-      setBookingSuccess('Booking confirmed successfully!');
-      setFormData(prev => ({ ...prev, turfId: '', selectedSlots: [], bringGuests: false, guestCount: '' }));
+
+      toast.success(`Booking confirmed! Date: ${formattedDate}${timeRange ? `, Time: ${timeRange}` : ''}`);
+      const options = turfOptionsByGame[activeGame] || [];
+      const autoTurf = options.length === 1 ? options[0].value : '';
+      setFormData({ date: getTodayDate(), turfId: autoTurf, selectedSlots: [], bringGuests: false, guestCount: '' });
     } catch (err) {
-      setBookingError(err.response?.data?.message || 'Booking failed. Please try again.');
+      const formatTime = (time24) => {
+        const [h, m] = time24.split(':').map(Number);
+        const period = h < 12 ? 'AM' : 'PM';
+        const hour = h % 12 === 0 ? 12 : h % 12;
+        return `${hour}:${String(m).padStart(2, '0')} ${period}`;
+      };
+      let errMsg = err.response?.data?.message || 'Booking failed. Please try again.';
+      // Convert HH:MM–HH:MM or HH:MM-HH:MM → AM/PM format
+      errMsg = errMsg.replace(/(\d{2}:\d{2})[–-](\d{2}:\d{2})/g, (_, t1, t2) => `${formatTime(t1)} - ${formatTime(t2)}`);
+      // Convert YYYY-MM-DD → DD-MM-YYYY format
+      errMsg = errMsg.replace(/(\d{4})-(\d{2})-(\d{2})/g, (_, y, mo, d) => `${d}-${mo}-${y}`);
+      toast.error(errMsg);
     } finally {
       setBookingLoading(false);
     }
@@ -173,7 +221,15 @@ const BookingForm = () => {
                 <div className="col-4" key={game.id}>
                   <button
                     type="button"
-                    onClick={() => setActiveGame(game.id)}
+                    onClick={() => {
+                      setActiveGame(game.id);
+                      setTimeout(() => {
+                        if (formSectionRef.current) {
+                          const top = formSectionRef.current.getBoundingClientRect().top + window.scrollY - 90;
+                          window.scrollTo({ top, behavior: 'smooth' });
+                        }
+                      }, 50);
+                    }}
                     style={{
                       width: '100%',
                       minHeight: '110px',
@@ -207,7 +263,7 @@ const BookingForm = () => {
           <form onSubmit={handleSubmit}>
             <div className="tab-content">
               <div className="tab-pane active" role="tabpanel">
-                <div className="booking-form-area">
+                <div className="booking-form-area" ref={formSectionRef}>
                   <div className="row gx-5 gy-4">
                     <div className="col-lg">
                       <div className="form-group">
@@ -222,6 +278,24 @@ const BookingForm = () => {
                           onChange={(e) => setFormData({ ...formData, date: e.target.value })}
                           required
                         />
+                      </div>
+                    </div>
+                    <div className="col-lg">
+                      <div className="form-group">
+                        <label htmlFor="b_turf" className="form-label">
+                          Select Turf
+                        </label>
+                        <select
+                          className="form-select form-control"
+                          value={formData.turfId}
+                          onChange={(e) => setFormData({ ...formData, turfId: e.target.value })}
+                          required
+                        >
+                          <option value="">Select Turf</option>
+                          {(turfOptionsByGame[activeGame] || []).map(opt => (
+                            <option key={opt.value} value={opt.value}>{opt.label}</option>
+                          ))}
+                        </select>
                       </div>
                     </div>
                     <div className="col-12">
@@ -271,6 +345,11 @@ const BookingForm = () => {
                             Selected ({formData.selectedSlots.length}): {formData.selectedSlots.slice().sort().map(s => FIXED_SLOTS.find(f => f.startTime === s)?.label).join(', ')}
                           </div>
                         )}
+                        {getBigTurfSlotError(formData.turfId, formData.selectedSlots) && (
+                          <div className="text-danger small mt-2 fw-semibold">
+                            ⚠ {getBigTurfSlotError(formData.turfId, formData.selectedSlots)}
+                          </div>
+                        )}
                       </div>
                     </div>
                     <div style={{ display: 'none' }}>
@@ -285,24 +364,6 @@ const BookingForm = () => {
                         })()}
                         readOnly
                       />
-                    </div>
-                    <div className="col-lg">
-                      <div className="form-group">
-                        <label htmlFor="b_turf" className="form-label">
-                          Select Turf
-                        </label>
-                        <select
-                          className="form-select form-control"
-                          value={formData.turfId}
-                          onChange={(e) => setFormData({ ...formData, turfId: e.target.value })}
-                          required
-                        >
-                          <option value="">Select Turf</option>
-                          {(turfOptionsByGame[activeGame] || []).map(opt => (
-                            <option key={opt.value} value={opt.value}>{opt.label}</option>
-                          ))}
-                        </select>
-                      </div>
                     </div>
                   </div>
 
@@ -352,8 +413,6 @@ const BookingForm = () => {
             </div>
 
             <div className="w-100 text-center mt-5">
-              {bookingSuccess && <div className="alert alert-success mb-3">{bookingSuccess}</div>}
-              {bookingError && <div className="alert alert-danger mb-3">{bookingError}</div>}
               <span
                 title={!isLoggedIn ? 'Please login to access' : ''}
                 style={{ display: 'inline-block', cursor: !isLoggedIn ? 'not-allowed' : 'default' }}
