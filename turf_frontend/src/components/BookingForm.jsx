@@ -109,9 +109,9 @@ const BookingForm = () => {
     { id: 'CRICKET',    name: 'Cricket',    icon: '/assets/images/g2.png' },
     { id: 'FUTSAL',     name: 'Futsal',     icon: '/assets/images/g1.png' },
     { id: 'BIG_TURF',  name: 'Big Turf',   icon: null, svg: STADIUM_SVG },
-    { id: 'PICKLEBALL',name: 'Pickleball', icon: '/assets/images/g3.png' },
-    { id: 'BADMINTON', name: 'Badminton',  icon: '/assets/images/g5.png' },
-    { id: 'TENNIS',    name: 'Tennis',     icon: '/assets/images/g6.png' }
+    { id: 'PICKLEBALL',name: 'Pickleball', icon: '/assets/images/g5.png' },
+    { id: 'BADMINTON', name: 'Badminton',  icon: '/assets/images/g6.png' },
+    { id: 'TENNIS',    name: 'Tennis',     icon: '/assets/images/g3.png' }
   ];
 
   const turfOptionsByGame = {

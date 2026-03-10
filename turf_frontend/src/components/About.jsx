@@ -27,16 +27,6 @@ const About = () => {
     {
       icon: (
         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-          <circle cx="12" cy="10" r="3"></circle>
-        </svg>
-      ),
-      title: 'Prime Locations',
-      description: 'Conveniently located venues across the city'
-    },
-    {
-      icon: (
-        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <circle cx="12" cy="12" r="10"></circle>
           <circle cx="12" cy="12" r="6"></circle>
           <circle cx="12" cy="12" r="2"></circle>
@@ -64,10 +54,10 @@ const About = () => {
           </p>
         </div>
 
-        <div className="row g-4">
+        <div className="row g-4 align-items-stretch">
           {features.map((feature, index) => (
-            <div className="col-lg-6" key={index}>
-              <div className="about-item">
+            <div className="col-lg-4" key={index}>
+              <div className="about-item h-100">
                 <div className="icon-area">
                   {feature.icon}
                 </div>
