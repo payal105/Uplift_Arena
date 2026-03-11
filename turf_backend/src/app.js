@@ -113,6 +113,10 @@ app.use("/api/bookings", bookingRoutes)
 const formBookingRoutes = require("./routes/formBookingRoutes")
 app.use("/api/form-bookings", formBookingRoutes)
 
+// Contact routes
+const contactRoutes = require("./routes/contactRoutes")
+app.use("/api/contact", contactRoutes)
+
 // Stats routes
 const statsRoutes = require("./routes/statsRoutes")
 app.use("/api/stats", statsRoutes)

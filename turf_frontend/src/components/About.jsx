@@ -42,15 +42,18 @@ const About = () => {
       <div className="container">
         <div className="row text-center heading-part">
           <h2>ABOUT US</h2>
-          <h6>Your ultimate destination for sports and entertainment</h6>
+          <h6>Your Destination for Sports, Fitness & Community</h6>
           <p>
-            Welcome to Sportitude, Kolkata's ultimate hub of adventure, sports, and entertainment! 
-            Since opening our doors in 2025, we've been the go-to destination for thrill-seekers, 
-            sports enthusiasts, and families looking for the perfect blend of excitement and fun.
+           Welcome to Uplift Sports Arena, Siliguri’s premier destination for sports, fitness, and recreation. Established in 2025, Uplift Sports Arena was built with a simple vision — to create a modern space where athletes, sports enthusiasts, and families can come together to play, train, and stay active.
           </p>
           <p>
-            Here, fun has no limits, excitement knows no bounds, and memories are made at every turn. 
-            So step in, gear up, and let the games begin because at Sportitude, the fun never ends!
+            Our facility offers well-maintained courts, professional sports infrastructure, and a vibrant environment designed for both beginners and competitive players. Whether you want to sharpen your skills, stay fit, or simply enjoy a game with friends, Uplift Sports Arena provides the perfect setting.
+          </p>
+          <p>
+            At Uplift Sports Arena, we believe sports go beyond just playing a game — they build discipline, promote teamwork, and bring people together. Every match played, every training session completed, and every moment spent here contributes to a growing community that shares a passion for sports and fitness.
+          </p>
+          <p>
+            Step in, gear up, and experience a place where sport, energy, and community come together.
           </p>
         </div>
 
