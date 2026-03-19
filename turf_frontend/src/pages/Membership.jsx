@@ -276,32 +276,235 @@ const Membership = () => {
         </div>
       </section>
 
-      {/* Coaching Coming Soon */}
+      {/* Coaching Schedule */}
       <section className="section-padding coaching-section">
         <div className="container">
-          <div className="row justify-content-center">
-            <div className="col-lg-8">
-              <div className="card border-0 shadow coaching-coming-soon text-center p-5">
-                <div className="mb-4">
-                  <i className="fas fa-whistle fa-3x" style={{color:'#08295E'}}></i>
-                </div>
-                <h3 className="fw-bold mb-3" style={{color:'#08295E'}}>Coaching Programme</h3>
-                <p className="text-muted mb-4">
-                  Professional coaching sessions are coming soon for all sports at Uplift Sports Arena.
+          <div className="heading-part text-center mb-4">
+            <div className="mb-3">
+              <i className="fas fa-whistle fa-3x" style={{color:'#08295E'}}></i>
+            </div>
+            <h2 className="fw-bold" style={{color:'#08295E'}}>Coaching Programme</h2>
+            <p className="text-muted">Professional coaching sessions at Uplift Sports Arena</p>
+          </div>
+
+          {/* Registration Note */}
+          <div className="row justify-content-center mb-4">
+            <div className="col-lg-10">
+              <div className="p-3 rounded-3" style={{background:'#f0f8e8', border:'1.5px solid #AADF6D'}}>
+                <p className="mb-1 fw-semibold small">
+                  <i className="fas fa-info-circle me-2" style={{color:'#08295E'}}></i>
+                  Registration Charges: <strong>₹6,000/- per annum per trainee</strong>
                 </p>
-                <div className="d-flex flex-wrap justify-content-center gap-2 mb-4">
-                  {['Badminton', 'Tennis', 'Pickleball', 'Football'].map((sport) => (
-                    <span key={sport} className="badge px-3 py-2 fs-6" style={{background:'#08295E', color:'#fff'}}>
-                      {sport}
-                    </span>
-                  ))}
-                </div>
-                <span className="badge px-4 py-2 fs-6 mx-auto" style={{background:'#AADF6D', color:'#08295E'}}>
-                  <i className="fas fa-clock me-2"></i>Coming Soon
-                </span>
+                <p className="mb-0 text-muted small">
+                  <i className="fas fa-check-circle me-1" style={{color:'#AADF6D'}}></i>
+                  No registration charges for Members / Member's children under 15 years
+                </p>
               </div>
             </div>
           </div>
+
+          <div className="row justify-content-center g-4">
+
+            {/* 1. Junior Coaching */}
+            <div className="col-lg-10">
+              <div className="card border-0 shadow-sm overflow-hidden">
+                <div className="card-header py-3 px-4" style={{background:'#08295E'}}>
+                  <div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <h6 className="mb-0 text-white fw-bold">
+                      <i className="fas fa-child me-2"></i>1. Junior Coaching
+                    </h6>
+                    <div className="d-flex gap-2 flex-wrap">
+                      <span className="badge px-3 py-2" style={{background:'#AADF6D', color:'#08295E'}}>60 mins / session</span>
+                      <span className="badge px-3 py-2" style={{background:'rgba(255,255,255,0.15)', color:'#fff'}}>Fee per quarter</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="table-responsive">
+                  <table className="table table-hover align-middle mb-0">
+                    <thead style={{background:'#f4f7fb'}}>
+                      <tr>
+                        <th className="ps-4">Frequency</th>
+                        <th>Days</th>
+                        <th>Timing</th>
+                        <th className="text-center">Tennis</th>
+                        <th className="text-center">Pickleball</th>
+                        <th className="text-center">Football</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td className="ps-4"><span className="badge px-3 py-2" style={{background:'#08295E', color:'#fff'}}>2 days/week</span></td>
+                        <td className="small text-muted">Tues/Thurs or Wed/Fri</td>
+                        <td className="small text-muted">3:30pm–4:30pm / 4:30pm–5:30pm</td>
+                        <td className="text-center fw-bold" style={{color:'#08295E'}}>₹8,000</td>
+                        <td className="text-center fw-bold" style={{color:'#08295E'}}>₹6,000</td>
+                        <td className="text-center fw-bold" style={{color:'#08295E'}}>₹6,000</td>
+                      </tr>
+                      <tr>
+                        <td className="ps-4"><span className="badge px-3 py-2" style={{background:'#08295E', color:'#fff'}}>3 days/week</span></td>
+                        <td className="small text-muted">Tues/Thurs/Sat or Wed/Fri/Sun</td>
+                        <td className="small text-muted">3:30pm–4:30pm / 4:30pm–5:30pm</td>
+                        <td className="text-center fw-bold" style={{color:'#08295E'}}>₹10,500</td>
+                        <td className="text-center fw-bold" style={{color:'#08295E'}}>₹8,000</td>
+                        <td className="text-center fw-bold" style={{color:'#08295E'}}>₹8,000</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            {/* 2. Adult Coaching */}
+            <div className="col-lg-10">
+              <div className="card border-0 shadow-sm overflow-hidden">
+                <div className="card-header py-3 px-4" style={{background:'#08295E'}}>
+                  <div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <h6 className="mb-0 text-white fw-bold">
+                      <i className="fas fa-user me-2"></i>2. Adult Coaching
+                      <small className="fw-normal ms-2 opacity-75">(Members only)</small>
+                    </h6>
+                    <div className="d-flex gap-2 flex-wrap">
+                      <span className="badge px-3 py-2" style={{background:'#AADF6D', color:'#08295E'}}>6am–10am / 6pm–9pm</span>
+                      <span className="badge px-3 py-2" style={{background:'rgba(255,255,255,0.15)', color:'#fff'}}>Fee per month</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="table-responsive">
+                  <table className="table table-hover align-middle mb-0">
+                    <thead style={{background:'#f4f7fb'}}>
+                      <tr>
+                        <th className="ps-4">Frequency</th>
+                        <th>Days</th>
+                        <th className="text-center">Tennis</th>
+                        <th className="text-center">Pickleball</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td className="ps-4"><span className="badge px-3 py-2" style={{background:'#08295E', color:'#fff'}}>2 days/week</span></td>
+                        <td className="text-muted">Any 2 days a week</td>
+                        <td className="text-center fw-bold" style={{color:'#08295E'}}>₹3,000</td>
+                        <td className="text-center fw-bold" style={{color:'#08295E'}}>₹3,000</td>
+                      </tr>
+                      <tr>
+                        <td className="ps-4"><span className="badge px-3 py-2" style={{background:'#08295E', color:'#fff'}}>3 days/week</span></td>
+                        <td className="text-muted">Any 3 days a week</td>
+                        <td className="text-center fw-bold" style={{color:'#08295E'}}>₹4,000</td>
+                        <td className="text-center fw-bold" style={{color:'#08295E'}}>₹4,000</td>
+                      </tr>
+                      <tr>
+                        <td className="ps-4"><span className="badge px-3 py-2" style={{background:'#08295E', color:'#fff'}}>4 days/week</span></td>
+                        <td className="text-muted">Any 4 days a week</td>
+                        <td className="text-center fw-bold" style={{color:'#08295E'}}>₹5,000</td>
+                        <td className="text-center fw-bold" style={{color:'#08295E'}}>₹5,000</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            {/* 3. Weekend Coaching + 4. Family Coaching side by side */}
+            <div className="col-lg-5">
+              <div className="card border-0 shadow-sm overflow-hidden h-100">
+                <div className="card-header py-3 px-4" style={{background:'#08295E'}}>
+                  <div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <h6 className="mb-0 text-white fw-bold">
+                      <i className="fas fa-calendar-week me-2"></i>3. Weekend Coaching
+                      <small className="fw-normal ms-2 opacity-75">(Juniors only)</small>
+                    </h6>
+                    <span className="badge px-3 py-2" style={{background:'rgba(255,255,255,0.15)', color:'#fff'}}>Fee per month</span>
+                  </div>
+                </div>
+                <div className="table-responsive">
+                  <table className="table table-hover align-middle mb-0">
+                    <thead style={{background:'#f4f7fb'}}>
+                      <tr>
+                        <th className="ps-4">Days</th>
+                        <th>Timing</th>
+                        <th className="text-center">Tennis</th>
+                        <th className="text-center">Pickleball</th>
+                        <th className="text-center">Football</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td className="ps-4">
+                          <span className="badge px-3 py-2" style={{background:'#08295E', color:'#fff'}}>Sat &amp; Sun</span>
+                          <div className="small text-muted mt-1">2 days/week</div>
+                        </td>
+                        <td className="small text-muted">10am–12 noon / 3pm–5pm</td>
+                        <td className="text-center fw-bold" style={{color:'#08295E'}}>₹6,000</td>
+                        <td className="text-center fw-bold" style={{color:'#08295E'}}>₹5,000</td>
+                        <td className="text-center fw-bold" style={{color:'#08295E'}}>₹5,000</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <div className="col-lg-5">
+              <div className="card border-0 shadow-sm overflow-hidden h-100">
+                <div className="card-header py-3 px-4" style={{background:'#08295E'}}>
+                  <div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <h6 className="mb-0 text-white fw-bold">
+                      <i className="fas fa-users me-2"></i>4. Pickleball Family Coaching
+                      <small className="fw-normal ms-2 opacity-75">(upto 5 members)</small>
+                    </h6>
+                    <span className="badge px-3 py-2" style={{background:'rgba(255,255,255,0.15)', color:'#fff'}}>Fee per month</span>
+                  </div>
+                </div>
+                <div className="table-responsive">
+                  <table className="table table-hover align-middle mb-0">
+                    <thead style={{background:'#f4f7fb'}}>
+                      <tr>
+                        <th className="ps-4">Days</th>
+                        <th>Timing</th>
+                        <th className="text-center">Pickleball</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td className="ps-4">
+                          <span className="badge px-3 py-2" style={{background:'#08295E', color:'#fff'}}>Sat &amp; Sun</span>
+                          <div className="small text-muted mt-1">2 days/week</div>
+                        </td>
+                        <td className="small text-muted">10am–11am / 11am–12pm / 3pm–4pm / 4pm–5pm</td>
+                        <td className="text-center fw-bold" style={{color:'#08295E'}}>₹5,000</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          {/* Purchase Coaching CTA */}
+          <div className="text-center mt-5">
+            <a
+              href="#membership-form"
+              style={{
+                display: 'inline-block',
+                background: '#AADF6D',
+                border: '2px solid #AADF6D',
+                color: '#08295E',
+                borderRadius: '10px',
+                fontWeight: '700',
+                fontSize: '16px',
+                letterSpacing: '0.5px',
+                padding: '14px 48px',
+                textDecoration: 'none',
+                transition: 'all 0.3s ease',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#08295E'; e.currentTarget.style.borderColor = '#08295E'; e.currentTarget.style.color = '#AADF6D'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = '#AADF6D'; e.currentTarget.style.borderColor = '#AADF6D'; e.currentTarget.style.color = '#08295E'; }}
+            >
+              <i className="fas fa-arrow-right me-2"></i>Purchase Coaching
+            </a>
+          </div>
+
         </div>
       </section>
 
