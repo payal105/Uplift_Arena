@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import api from '../api/axios';
 
 const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const redirectMessage = location.state?.message || '';
+  const redirectFrom = location.state?.from || '/';
   const [activeTab, setActiveTab] = useState('login');
 
   // --- Login State ---
@@ -43,7 +46,7 @@ const Login = () => {
       localStorage.setItem('userToken', res.data.token);
       localStorage.setItem('userInfo', JSON.stringify(res.data.user));
       window.dispatchEvent(new Event('userAuthChanged'));
-      navigate('/');
+      navigate(redirectFrom);
     } catch (err) {
       setLoginError(
         err.response?.data?.message || 'Login failed. Please try again.'
@@ -138,6 +141,12 @@ const Login = () => {
                   <form className="auth-form" onSubmit={handleLoginSubmit} noValidate>
                     <h4 className="form-heading">Welcome Back</h4>
                     <p className="form-subtext">Login to your account to continue</p>
+
+                    {redirectMessage && (
+                      <div className="alert alert-warning py-2">
+                        <i className="fas fa-exclamation-triangle me-2"></i>{redirectMessage}
+                      </div>
+                    )}
 
                     {loginError && (
                       <div className="alert alert-danger py-2">{loginError}</div>

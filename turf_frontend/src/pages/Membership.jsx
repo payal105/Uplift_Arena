@@ -1,4 +1,7 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import api from '../api/axios';
 
 const GymIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="32" height="32">
@@ -161,41 +164,101 @@ const sportsRates = [
 ];
 
 const Membership = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
-    sports: [],
     membershipType: '',
+    activityChoice: '',
     message: '',
   });
-  const [submitted, setSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
-  const sportsOptions = ['Badminton', 'Pickleball', 'Tennis', 'Futsal', 'Cricket / Big Turf', 'Gym', 'Multiple Sports'];
+  const membershipPlans = [
+    { value: 'annual-individual-club', label: 'Annual Individual Club Membership', price: '₹30,000', allActivity: true, note: null },
+    { value: 'annual-family-club', label: 'Annual Family Club Membership', price: '₹50,000', allActivity: true, note: 'Couple + upto 3 Kids below 12 years' },
+    { value: 'annual-individual-activity', label: 'Annual Individual Activity Membership', price: '₹18,000', allActivity: false, note: null },
+    { value: 'monthly-individual-activity', label: 'Monthly Individual Activity Membership', price: '₹3,000', allActivity: false, note: null },
+  ];
+
+  const activityOptions = ['Gym', 'Badminton', 'Tennis', 'Pickleball'];
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (name === 'membershipType') {
+      const plan = membershipPlans.find(p => p.value === value);
+      setFormData((prev) => ({ ...prev, membershipType: value, activityChoice: plan?.allActivity ? '' : prev.activityChoice }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
-  const handleSportsChange = (e) => {
-    const { value, checked } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      sports: checked
-        ? [...prev.sports, value]
-        : prev.sports.filter((s) => s !== value),
-    }));
-  };
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setSubmitted(true);
-    // Reset after 3 seconds
-    setTimeout(() => {
-      setSubmitted(false);
-      setFormData({ name: '', email: '', phone: '', sports: [], membershipType: '', message: '' });
-    }, 4000);
+    setSubmitError('');
+
+    // Manual validation
+    if (!formData.name.trim()) {
+      setSubmitError('Full name is required.');
+      return;
+    }
+    if (!formData.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      setSubmitError('A valid email address is required.');
+      return;
+    }
+    if (!formData.phone.trim() || !/^[0-9]{10}$/.test(formData.phone.trim())) {
+      setSubmitError('A valid 10-digit phone number is required.');
+      return;
+    }
+    if (!formData.membershipType) {
+      setSubmitError('Please select a membership type.');
+      return;
+    }
+    const activityRequiredPlans = ['annual-individual-activity', 'monthly-individual-activity'];
+    if (activityRequiredPlans.includes(formData.membershipType) && !formData.activityChoice) {
+      setSubmitError('Please choose an activity for your membership.');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const token = localStorage.getItem('userToken');
+      if (!token || token === 'null' || token === 'undefined') {
+        setSubmitError('You must be logged in to submit a membership enquiry.');
+        setSubmitting(false);
+        return;
+      }
+      await api.post(
+        '/api/memberships',
+        {
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          membershipType: formData.membershipType,
+          activityChoice: formData.activityChoice || undefined,
+          message: formData.message,
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success('Membership submitted successfully!');
+      setFormData({ name: '', email: '', phone: '', membershipType: '', activityChoice: '', message: '' });
+    } catch (err) {
+      const status = err.response?.status;
+      const msg = err.response?.data?.message || '';
+      if (status === 401) {
+        // Clear stale token and redirect to login
+        localStorage.removeItem('userToken');
+        localStorage.removeItem('userInfo');
+        window.dispatchEvent(new Event('userAuthChanged'));
+        navigate('/login', { state: { from: '/membership', message: msg || 'Your session has expired. Please log in again.' } });
+        return;
+      }
+      setSubmitError(msg || 'Submission failed. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -518,14 +581,7 @@ const Membership = () => {
           <div className="row justify-content-center">
             <div className="col-lg-8">
               <div className="card border-0 shadow-lg p-4 p-md-5">
-                {submitted ? (
-                  <div className="text-center py-5">
-                    <i className="fas fa-check-circle fa-4x text-success mb-4"></i>
-                    <h4 className="fw-bold text-success">Thank You!</h4>
-                    <p className="text-muted">Your membership enquiry has been submitted. We'll contact you shortly.</p>
-                  </div>
-                ) : (
-                  <form onSubmit={handleSubmit}>
+                  <form onSubmit={handleSubmit} noValidate>
                     <div className="row g-3">
                       {/* Full Name */}
                       <div className="col-md-6">
@@ -539,7 +595,6 @@ const Membership = () => {
                           value={formData.name}
                           onChange={handleChange}
                           placeholder="Enter your full name"
-                          required
                         />
                       </div>
 
@@ -555,7 +610,6 @@ const Membership = () => {
                           value={formData.email}
                           onChange={handleChange}
                           placeholder="Enter your email address"
-                          required
                         />
                       </div>
 
@@ -570,53 +624,97 @@ const Membership = () => {
                           name="phone"
                           value={formData.phone}
                           onChange={handleChange}
-                          placeholder="Enter your phone number"
-                          pattern="[0-9]{10}"
-                          required
+                          placeholder="Enter your 10-digit phone number"
                         />
                       </div>
 
                       {/* Membership Type */}
-                      <div className="col-md-6">
+                      <div className="col-12">
                         <label className="form-label fw-semibold">
                           Membership Type <span className="text-danger">*</span>
                         </label>
-                        <select
-                          className="form-select"
-                          name="membershipType"
-                          value={formData.membershipType}
-                          onChange={handleChange}
-                          required
-                        >
-                          <option value="">Select membership type</option>
-                          <option value="individual">Individual</option>
-                          <option value="family">Family</option>
-                        </select>
-                      </div>
-
-                      {/* Sports Interested In */}
-                      <div className="col-12">
-                        <label className="form-label fw-semibold">Sports / Facilities Interested In</label>
-                        <div className="row g-2 mt-1">
-                          {sportsOptions.map((sport) => (
-                            <div key={sport} className="col-sm-6 col-md-4">
-                              <div className="form-check">
+                        <div className="row g-3 mt-1">
+                          {membershipPlans.map((plan) => (
+                            <div key={plan.value} className="col-md-6 d-flex">
+                              <label
+                                style={{
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  justifyContent: 'space-between',
+                                  width: '100%',
+                                  padding: '14px 16px',
+                                  borderRadius: '10px',
+                                  border: `2px solid ${formData.membershipType === plan.value ? '#08295E' : '#dee2e6'}`,
+                                  cursor: 'pointer',
+                                  background: formData.membershipType === plan.value ? '#f0f4fa' : '#fff',
+                                  transition: 'all 0.2s ease',
+                                }}
+                              >
                                 <input
-                                  className="form-check-input"
-                                  type="checkbox"
-                                  id={`sport-${sport}`}
-                                  value={sport}
-                                  checked={formData.sports.includes(sport)}
-                                  onChange={handleSportsChange}
+                                  type="radio"
+                                  name="membershipType"
+                                  value={plan.value}
+                                  checked={formData.membershipType === plan.value}
+                                  onChange={handleChange}
+                                  style={{ display: 'none' }}
                                 />
-                                <label className="form-check-label" htmlFor={`sport-${sport}`}>
-                                  {sport}
-                                </label>
-                              </div>
+                                <div className="d-flex justify-content-between align-items-start">
+                                  <div className="flex-grow-1 me-2">
+                                    <div className="fw-bold" style={{ color: '#08295E', fontSize: '13.5px' }}>{plan.label}</div>
+                                    {plan.note && <div className="text-muted mt-1" style={{ fontSize: '11.5px' }}>{plan.note}</div>}
+                                  </div>
+                                  <div className="fw-bold" style={{ color: '#08295E', fontSize: '15px', whiteSpace: 'nowrap' }}>{plan.price}</div>
+                                </div>
+                                <div className="mt-2">
+                                  {plan.allActivity && (
+                                    <span className="badge px-2 py-1" style={{ background: '#AADF6D', color: '#08295E', fontSize: '11px' }}>
+                                      <i className="fas fa-check me-1"></i>ALL ACTIVITY INCLUDED
+                                    </span>
+                                  )}
+                                </div>
+                              </label>
                             </div>
                           ))}
                         </div>
                       </div>
+
+                      {/* Activity Choice */}
+                      {(formData.membershipType === 'annual-individual-activity' || formData.membershipType === 'monthly-individual-activity') && (
+                        <div className="col-12">
+                          <label className="form-label fw-semibold">
+                            Choose Activity <span className="text-danger">*</span>
+                          </label>
+                          <div className="row g-2 mt-1">
+                            {activityOptions.map((activity) => (
+                              <div key={activity} className="col-6 col-md-3">
+                                <label
+                                  style={{
+                                    display: 'block',
+                                    padding: '12px',
+                                    textAlign: 'center',
+                                    borderRadius: '10px',
+                                    border: `2px solid ${formData.activityChoice === activity ? '#08295E' : '#dee2e6'}`,
+                                    cursor: 'pointer',
+                                    background: formData.activityChoice === activity ? '#08295E' : '#fff',
+                                    color: formData.activityChoice === activity ? '#fff' : '#333',
+                                    transition: 'all 0.2s ease',
+                                  }}
+                                >
+                                  <input
+                                    type="radio"
+                                    name="activityChoice"
+                                    value={activity}
+                                    checked={formData.activityChoice === activity}
+                                    onChange={handleChange}
+                                    style={{ display: 'none' }}
+                                  />
+                                  <div className="fw-semibold small">{activity}</div>
+                                </label>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
 
                       {/* Message */}
                       <div className="col-12">
@@ -631,32 +729,44 @@ const Membership = () => {
                         ></textarea>
                       </div>
 
+                      {/* Error message */}
+                      {submitError && (
+                        <div className="col-12">
+                          <div className="alert alert-danger py-2 mb-0" role="alert">
+                            <i className="fas fa-exclamation-circle me-2"></i>{submitError}
+                          </div>
+                        </div>
+                      )}
+
                       {/* Submit */}
                       <div className="col-12 text-center mt-2">
                         <button
                           type="submit"
+                          disabled={submitting}
                           style={{
-                            background: '#AADF6D',
+                            background: submitting ? '#ccc' : '#AADF6D',
                             backgroundImage: 'none',
-                            border: '2px solid #AADF6D',
+                            border: `2px solid ${submitting ? '#ccc' : '#AADF6D'}`,
                             color: '#08295E',
                             borderRadius: '10px',
                             fontWeight: '700',
                             fontSize: '16px',
                             letterSpacing: '0.5px',
                             padding: '14px 48px',
-                            cursor: 'pointer',
+                            cursor: submitting ? 'not-allowed' : 'pointer',
                             transition: 'all 0.3s ease',
                           }}
-                          onMouseEnter={e => { e.currentTarget.style.background = '#08295E'; e.currentTarget.style.borderColor = '#08295E'; e.currentTarget.style.color = '#AADF6D'; }}
-                          onMouseLeave={e => { e.currentTarget.style.background = '#AADF6D'; e.currentTarget.style.borderColor = '#AADF6D'; e.currentTarget.style.color = '#08295E'; }}
+                          onMouseEnter={e => { if (!submitting) { e.currentTarget.style.background = '#08295E'; e.currentTarget.style.borderColor = '#08295E'; e.currentTarget.style.color = '#AADF6D'; }}}
+                          onMouseLeave={e => { if (!submitting) { e.currentTarget.style.background = '#AADF6D'; e.currentTarget.style.borderColor = '#AADF6D'; e.currentTarget.style.color = '#08295E'; }}}
                         >
-                          <i className="fas fa-arrow-right me-2"></i>Purchase Membership
+                          {submitting
+                            ? <><i className="fas fa-spinner fa-spin me-2"></i>Submitting...</>
+                            : <><i className="fas fa-arrow-right me-2"></i>Purchase Membership</>
+                          }
                         </button>
                       </div>
                     </div>
                   </form>
-                )}
               </div>
             </div>
           </div>

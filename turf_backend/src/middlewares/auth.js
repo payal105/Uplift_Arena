@@ -33,6 +33,9 @@ const authenticate = async (req, res, next) => {
     
     next();
   } catch (error) {
+    if (error.name === "TokenExpiredError") {
+      return res.status(401).json({ message: "Session expired. Please log in again." });
+    }
     res.status(401).json({ message: "Token invalid" });
   }
 };

@@ -9,7 +9,9 @@ const userDataSchema = new mongoose.Schema({
 
   isVerified: { type: Boolean, default: false },
 
-  isActive: { type: Boolean, default: true }
+  isActive: { type: Boolean, default: true },
+
+  isMember: { type: Number, default: 0 } // 0 = non-member, 1 = member
 
 }, { timestamps: true })
 

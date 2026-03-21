@@ -117,6 +117,11 @@ app.use("/api/form-bookings", formBookingRoutes)
 const contactRoutes = require("./routes/contactRoutes")
 app.use("/api/contact", contactRoutes)
 
+// Membership routes
+const membershipRoutes = require("./routes/membershipRoutes")
+app.use("/api/memberships", membershipRoutes)
+console.log("✅ Membership routes loaded at /api/memberships")
+
 // Stats routes
 const statsRoutes = require("./routes/statsRoutes")
 app.use("/api/stats", statsRoutes)
