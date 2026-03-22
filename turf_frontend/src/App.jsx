@@ -15,6 +15,7 @@ import Membership from './pages/Membership';
 import Contact from './pages/Contact';
 import Login from './pages/Login';
 import MyBookings from './pages/MyBookings';
+import MyMembership from './pages/MyMembership';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import PaymentPolicy from './pages/PaymentPolicy';
 import UsagePolicy from './pages/UsagePolicy';
@@ -61,6 +62,7 @@ function App() {
           <Route path="/contact" element={<Contact />} />
           <Route path="/login" element={<Login />} />
           <Route path="/my-bookings" element={<MyBookings />} />
+          <Route path="/my-membership" element={<MyMembership />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/payment-policy" element={<PaymentPolicy />} />
           <Route path="/usage-policy" element={<UsagePolicy />} />

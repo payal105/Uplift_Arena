@@ -83,6 +83,14 @@ const BookingForm = () => {
   };
 
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('userToken'));
+  const [memberInfo, setMemberInfo] = useState({ isMember: 0, activityChoice: null });
+
+  // Maps membership activityChoice text → booking game ID
+  const activityToGameId = {
+    'Badminton':  'BADMINTON',
+    'Tennis':     'TENNIS',
+    'Pickleball': 'PICKLEBALL',
+  };
 
   useEffect(() => {
     const syncAuth = () => setIsLoggedIn(!!localStorage.getItem('userToken'));
@@ -94,9 +102,54 @@ const BookingForm = () => {
     };
   }, []);
 
+  // Fetch isMember + activityChoice whenever login state changes
+  useEffect(() => {
+    const fetchMemberInfo = async () => {
+      const token = localStorage.getItem('userToken');
+      if (!token) {
+        setMemberInfo({ isMember: 0, activityChoice: null });
+        return;
+      }
+      try {
+        const profileRes = await api.get('/api/user_data/profile', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const isMember = profileRes.data.user?.isMember ?? 0;
+        if (isMember === 1) {
+          const membershipRes = await api.get('/api/memberships/my', {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          const activeMembership = membershipRes.data.memberships?.find(m => m.isActive === 1);
+          setMemberInfo({ isMember: 1, activityChoice: activeMembership?.activityChoice ?? null });
+        } else {
+          setMemberInfo({ isMember: 0, activityChoice: null });
+        }
+      } catch {
+        setMemberInfo({ isMember: 0, activityChoice: null });
+      }
+    };
+    fetchMemberInfo();
+  }, [isLoggedIn]);
+
   const [activeGame, setActiveGame] = useState('CRICKET');
   const formSectionRef = useRef(null);
   const [bookingLoading, setBookingLoading] = useState(false);
+
+  // When a member has a specific activity, auto-select that game
+  useEffect(() => {
+    if (memberInfo.isMember === 1 && memberInfo.activityChoice) {
+      const allowed = activityToGameId[memberInfo.activityChoice];
+      if (allowed) setActiveGame(allowed);
+    }
+  }, [memberInfo]);
+
+  // Returns true if game should be disabled based on membership
+  const isGameDisabled = (gameId) => {
+    if (memberInfo.isMember !== 1) return false;
+    if (!memberInfo.activityChoice) return false; // all-activities plan
+    const allowed = activityToGameId[memberInfo.activityChoice];
+    return gameId !== allowed;
+  };
   const [formData, setFormData] = useState({
     date: getTodayDate(),
     turfId: '',
@@ -131,10 +184,22 @@ const BookingForm = () => {
     setFormData(prev => ({ ...prev, turfId: autoTurf, selectedSlots: [] }));
   }, [activeGame]);
 
+  // Max slots a user can select: 2 for Big Turf, 1 for everything else
+  const maxSlots = formData.turfId === 'big-turf' ? 2 : 1;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (formData.selectedSlots.length === 0) {
       toast.error('Please select at least one time slot');
+      return;
+    }
+    // Enforce per-day per-sport hour limit
+    if (formData.turfId !== 'big-turf' && formData.selectedSlots.length > 1) {
+      toast.error('You can only book 1 hour per day for this sport.');
+      return;
+    }
+    if (formData.turfId === 'big-turf' && formData.selectedSlots.length > 2) {
+      toast.error('Big Turf can be booked for a maximum of 2 hours per day.');
       return;
     }
     // Big Turf: slots must be continuous and total >= 2 hours
@@ -219,9 +284,15 @@ const BookingForm = () => {
             <div className="row g-3">
               {games.map((game) => (
                 <div className="col-4" key={game.id}>
+                  <span
+                    title={isGameDisabled(game.id) ? 'Upgrade your membership to access' : ''}
+                    style={{ display: 'block', cursor: isGameDisabled(game.id) ? 'not-allowed' : 'default' }}
+                  >
                   <button
                     type="button"
+                    disabled={isGameDisabled(game.id)}
                     onClick={() => {
+                      if (isGameDisabled(game.id)) return;
                       setActiveGame(game.id);
                       setTimeout(() => {
                         if (formSectionRef.current) {
@@ -246,7 +317,8 @@ const BookingForm = () => {
                       fontSize: '16px',
                       fontWeight: '600',
                       color: activeGame === game.id ? '#fff' : '#08295E',
-                      cursor: 'pointer'
+                      cursor: isGameDisabled(game.id) ? 'not-allowed' : 'pointer',
+                      opacity: isGameDisabled(game.id) ? 0.4 : 1,
                     }}
                   >
                     {game.svg
@@ -255,6 +327,7 @@ const BookingForm = () => {
                     }
                     {game.name}
                   </button>
+                  </span>
                 </div>
               ))}
             </div>
@@ -304,11 +377,17 @@ const BookingForm = () => {
                         <div className="d-flex flex-nowrap gap-2 mt-2" style={{ overflowX: 'auto', paddingBottom: '4px' }}>
                           {FIXED_SLOTS.map((slot) => {
                             const isSelected = formData.selectedSlots.includes(slot.startTime);
+                            const limitReached = !isSelected && formData.selectedSlots.length >= maxSlots;
                             return (
-                              <button
+                              <span
                                 key={slot.label}
+                                title={limitReached ? (formData.turfId === 'big-turf' ? 'Maximum 2 hours allowed per day' : 'Maximum 1 hour allowed per day') : ''}
+                                style={{ display: 'inline-block', cursor: limitReached ? 'not-allowed' : 'default' }}
+                              >
+                              <button
                                 type="button"
                                 className="btn btn-sm"
+                                disabled={limitReached}
                                 style={{
                                   borderRadius: '20px',
                                   whiteSpace: 'nowrap',
@@ -320,10 +399,13 @@ const BookingForm = () => {
                                   color: '#08295E',
                                   border: '1.5px solid #08295E',
                                   outline: 'none',
-                                  boxShadow: 'none'
+                                  boxShadow: 'none',
+                                  opacity: limitReached ? 0.4 : 1,
+                                  pointerEvents: limitReached ? 'none' : 'auto'
                                 }}
                                 onClick={() => {
                                   const already = formData.selectedSlots.includes(slot.startTime);
+                                  if (!already && formData.selectedSlots.length >= maxSlots) return;
                                   setFormData({
                                     ...formData,
                                     selectedSlots: already
@@ -334,6 +416,7 @@ const BookingForm = () => {
                               >
                                 {slot.label}
                               </button>
+                              </span>
                             );
                           })}
                         </div>
