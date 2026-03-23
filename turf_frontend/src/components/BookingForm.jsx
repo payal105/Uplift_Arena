@@ -13,6 +13,15 @@ const FIXED_SLOTS = [
   { label: '8:30 - 9:30 PM',   startTime: '20:30', endTime: '21:30' },
 ];
 
+const PRICING = {
+  TENNIS:     { rate: 1200, description: 'Hourly · max 4 pax' },
+  BADMINTON:  { rate: 1200, description: 'Hourly · max 4 pax' },
+  PICKLEBALL: { rate: 1200, description: 'Hourly · max 4 pax' },
+  FUTSAL:     { rate: 1200, description: 'Per hour · max 10 pax' },
+  CRICKET:    { rate: 1200, description: 'Per hour · max 10 pax' },
+  BIG_TURF:   { rate: 2000, description: 'Per hour · max 20 pax · min 2 hrs' },
+};
+
 const STADIUM_SVG = (
   <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="3" strokeLinejoin="round">
     {/* Outer boundary */}
@@ -134,6 +143,9 @@ const BookingForm = () => {
   const [activeGame, setActiveGame] = useState('CRICKET');
   const formSectionRef = useRef(null);
   const [bookingLoading, setBookingLoading] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentSummary, setPaymentSummary] = useState(null);
+  const [paymentLoading, setPaymentLoading] = useState(false);
 
   // When a member has a specific activity, auto-select that game
   useEffect(() => {
@@ -208,36 +220,64 @@ const BookingForm = () => {
       toast.error(bigTurfErr);
       return;
     }
+
+    // Build shared data
+    const slotObjects = formData.selectedSlots
+      .slice()
+      .sort()
+      .map(startTime => {
+        const slot = FIXED_SLOTS.find(s => s.startTime === startTime);
+        return { startTime: slot.startTime, endTime: slot.endTime };
+      });
+    const [yyyy, mm, dd] = formData.date.split('-');
+    const formattedDate = `${dd}-${mm}-${yyyy}`;
+    const formatTime = (time24) => {
+      const [h, m] = time24.split(':').map(Number);
+      const period = h < 12 ? 'AM' : 'PM';
+      const hour = h % 12 === 0 ? 12 : h % 12;
+      return `${hour}:${String(m).padStart(2, '0')} ${period}`;
+    };
+    const sortedSlots = formData.selectedSlots.slice().sort();
+    const firstSlot = FIXED_SLOTS.find(s => s.startTime === sortedSlots[0]);
+    const lastSlot  = FIXED_SLOTS.find(s => s.startTime === sortedSlots[sortedSlots.length - 1]);
+    const timeRange = firstSlot && lastSlot
+      ? `${formatTime(firstSlot.startTime)} - ${formatTime(lastSlot.endTime)}`
+      : '';
+
+    // Non-member: show payment summary modal
+    if (memberInfo.isMember === 0) {
+      const pricing = PRICING[activeGame] || { rate: 1200, description: 'per hour' };
+      const hours = formData.selectedSlots.length;
+      const courtTotal = pricing.rate * hours;
+      const guestCount = formData.bringGuests ? Math.max(1, parseInt(formData.guestCount) || 0) : 0;
+      const guestCharges = guestCount * 500;
+      const turfLabel = (turfOptionsByGame[activeGame] || []).find(o => o.value === formData.turfId)?.label || formData.turfId;
+      setPaymentSummary({
+        sport: activeGame,
+        turfId: formData.turfId,
+        turfLabel,
+        date: formData.date,
+        formattedDate,
+        slots: slotObjects,
+        timeRange,
+        ratePerHour: pricing.rate,
+        pricingDescription: pricing.description,
+        hours,
+        courtTotal,
+        guestCount: formData.bringGuests ? parseInt(formData.guestCount) || 0 : 0,
+        guestCharges,
+        totalAmount: courtTotal + guestCharges,
+        bringGuests: formData.bringGuests,
+        gameName: games.find(g => g.id === activeGame)?.name || activeGame,
+      });
+      setShowPaymentModal(true);
+      return;
+    }
+
+    // Member: direct booking
     setBookingLoading(true);
     try {
-      // Build full slot objects { startTime, endTime } for each selected slot
-      const slotObjects = formData.selectedSlots
-        .slice()
-        .sort()
-        .map(startTime => {
-          const slot = FIXED_SLOTS.find(s => s.startTime === startTime);
-          return { startTime: slot.startTime, endTime: slot.endTime };
-        });
-
-      // Format date as dd-mm-yyyy
-      const [yyyy, mm, dd] = formData.date.split('-');
-      const formattedDate = `${dd}-${mm}-${yyyy}`;
-
-      // Format slots as AM/PM
-      const formatTime = (time24) => {
-        const [h, m] = time24.split(':').map(Number);
-        const period = h < 12 ? 'AM' : 'PM';
-        const hour = h % 12 === 0 ? 12 : h % 12;
-        return `${hour}:${String(m).padStart(2, '0')} ${period}`;
-      };
-      const sortedSlots = formData.selectedSlots.slice().sort();
-      const firstSlot = FIXED_SLOTS.find(s => s.startTime === sortedSlots[0]);
-      const lastSlot  = FIXED_SLOTS.find(s => s.startTime === sortedSlots[sortedSlots.length - 1]);
-      const timeRange = firstSlot && lastSlot
-        ? `${formatTime(firstSlot.startTime)} - ${formatTime(lastSlot.endTime)}`
-        : '';
-
-      const response = await api.post('/api/form-bookings', {
+      await api.post('/api/form-bookings', {
         sport: activeGame,
         turfId: formData.turfId,
         bookingDate: formData.date,
@@ -247,11 +287,40 @@ const BookingForm = () => {
       }, {
         headers: { Authorization: `Bearer ${localStorage.getItem('userToken')}` }
       });
-
       toast.success(`Booking confirmed! Date: ${formattedDate}${timeRange ? `, Time: ${timeRange}` : ''}`);
       const options = turfOptionsByGame[activeGame] || [];
       const autoTurf = options.length === 1 ? options[0].value : '';
       setFormData({ date: getTodayDate(), turfId: autoTurf, selectedSlots: [], bringGuests: false, guestCount: '' });
+    } catch (err) {
+      let errMsg = err.response?.data?.message || 'Booking failed. Please try again.';
+      errMsg = errMsg.replace(/(\d{2}:\d{2})[–-](\d{2}:\d{2})/g, (_, t1, t2) => `${formatTime(t1)} - ${formatTime(t2)}`);
+      errMsg = errMsg.replace(/(\d{4})-(\d{2})-(\d{2})/g, (_, y, mo, d) => `${d}-${mo}-${y}`);
+      toast.error(errMsg);
+    } finally {
+      setBookingLoading(false);
+    }
+  };
+
+  const handleProceedPayment = async () => {
+    if (!paymentSummary) return;
+    setPaymentLoading(true);
+    try {
+      await api.post('/api/form-bookings', {
+        sport: paymentSummary.sport,
+        turfId: paymentSummary.turfId,
+        bookingDate: paymentSummary.date,
+        slots: paymentSummary.slots,
+        bringGuests: paymentSummary.bringGuests,
+        guestCount: paymentSummary.guestCount
+      }, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('userToken')}` }
+      });
+      setShowPaymentModal(false);
+      setPaymentSummary(null);
+      const options = turfOptionsByGame[paymentSummary.sport] || [];
+      const autoTurf = options.length === 1 ? options[0].value : '';
+      setFormData({ date: getTodayDate(), turfId: autoTurf, selectedSlots: [], bringGuests: false, guestCount: '' });
+      toast.success('Booking confirmed!');
     } catch (err) {
       const formatTime = (time24) => {
         const [h, m] = time24.split(':').map(Number);
@@ -260,13 +329,11 @@ const BookingForm = () => {
         return `${hour}:${String(m).padStart(2, '0')} ${period}`;
       };
       let errMsg = err.response?.data?.message || 'Booking failed. Please try again.';
-      // Convert HH:MM–HH:MM or HH:MM-HH:MM → AM/PM format
       errMsg = errMsg.replace(/(\d{2}:\d{2})[–-](\d{2}:\d{2})/g, (_, t1, t2) => `${formatTime(t1)} - ${formatTime(t2)}`);
-      // Convert YYYY-MM-DD → DD-MM-YYYY format
       errMsg = errMsg.replace(/(\d{4})-(\d{2})-(\d{2})/g, (_, y, mo, d) => `${d}-${mo}-${y}`);
       toast.error(errMsg);
     } finally {
-      setBookingLoading(false);
+      setPaymentLoading(false);
     }
   };
 
@@ -513,6 +580,116 @@ const BookingForm = () => {
           </form>
         </div>
       </div>
+
+      {/* Payment Summary Modal for Non-Members */}
+      {showPaymentModal && paymentSummary && (
+        <>
+          <div
+            className="modal fade show"
+            style={{ display: 'block', zIndex: 1055 }}
+            tabIndex="-1"
+            role="dialog"
+            aria-modal="true"
+          >
+            <div className="modal-dialog modal-dialog-centered" role="document" style={{ maxWidth: '480px' }}>
+              <div className="modal-content" style={{ borderRadius: '12px', overflow: 'hidden', border: 'none', boxShadow: '0 10px 40px rgba(0,0,0,0.25)' }}>
+
+                {/* Header */}
+                <div className="modal-header" style={{ background: '#08295E', color: '#fff', borderBottom: 'none', padding: '18px 24px' }}>
+                  <div>
+                    <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', opacity: 0.65, marginBottom: '3px' }}>Pay &amp; Play</div>
+                    <h5 className="modal-title mb-0" style={{ fontWeight: 700, fontSize: '1.15rem' }}>Order Summary</h5>
+                  </div>
+                  <button
+                    type="button"
+                    className="btn-close btn-close-white"
+                    onClick={() => setShowPaymentModal(false)}
+                    aria-label="Close"
+                  />
+                </div>
+
+                {/* Body */}
+                <div className="modal-body" style={{ padding: '24px' }}>
+
+                  {/* Booking details grid */}
+                  <div style={{ background: '#f4f6f9', borderRadius: '8px', padding: '16px', marginBottom: '20px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                      <div>
+                        <div style={{ fontSize: '11px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Sport</div>
+                        <div style={{ fontWeight: 600, color: '#08295E', marginTop: '3px' }}>{paymentSummary.gameName}</div>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '11px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Court</div>
+                        <div style={{ fontWeight: 600, color: '#08295E', marginTop: '3px' }}>{paymentSummary.turfLabel}</div>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '11px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Date</div>
+                        <div style={{ fontWeight: 600, color: '#08295E', marginTop: '3px' }}>{paymentSummary.formattedDate}</div>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '11px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Time</div>
+                        <div style={{ fontWeight: 600, color: '#08295E', marginTop: '3px' }}>{paymentSummary.timeRange || '—'}</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Pricing breakdown */}
+                  <div style={{ borderTop: '1px solid #e9ecef', paddingTop: '16px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
+                      <div>
+                        <span style={{ fontSize: '14px', color: '#444' }}>Court charges</span>
+                        <div style={{ fontSize: '12px', color: '#999', marginTop: '2px' }}>
+                          ₹{paymentSummary.ratePerHour.toLocaleString()} × {paymentSummary.hours} hr{paymentSummary.hours > 1 ? 's' : ''} · {paymentSummary.pricingDescription}
+                        </div>
+                      </div>
+                      <span style={{ fontWeight: 600, fontSize: '15px', color: '#333' }}>₹{paymentSummary.courtTotal.toLocaleString()}</span>
+                    </div>
+
+                    {paymentSummary.guestCount > 0 && (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginTop: '12px', marginBottom: '4px' }}>
+                        <div>
+                          <span style={{ fontSize: '14px', color: '#444' }}>Guest charges</span>
+                          <div style={{ fontSize: '12px', color: '#999', marginTop: '2px' }}>
+                            ₹500 × {paymentSummary.guestCount} guest{paymentSummary.guestCount > 1 ? 's' : ''}
+                          </div>
+                        </div>
+                        <span style={{ fontWeight: 600, fontSize: '15px', color: '#333' }}>₹{paymentSummary.guestCharges.toLocaleString()}</span>
+                      </div>
+                    )}
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '2px solid #08295E', paddingTop: '14px', marginTop: '14px' }}>
+                      <span style={{ fontWeight: 700, fontSize: '16px', color: '#08295E' }}>Total Amount</span>
+                      <span style={{ fontWeight: 700, fontSize: '20px', color: '#08295E' }}>₹{paymentSummary.totalAmount.toLocaleString()}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Footer */}
+                <div className="modal-footer" style={{ borderTop: '1px solid #e9ecef', padding: '14px 24px', justifyContent: 'center' }}>
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={handleProceedPayment}
+                    disabled={paymentLoading}
+                    style={{ minWidth: '180px' }}
+                  >
+                    {paymentLoading ? (
+                      <>
+                        <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />
+                        Processing...
+                      </>
+                    ) : (
+                      'Proceed to Payment'
+                    )}
+                  </button>
+                </div>
+
+              </div>
+            </div>
+          </div>
+          <div className="modal-backdrop fade show" style={{ zIndex: 1054 }} />
+        </>
+      )}
 
     </section>
   );

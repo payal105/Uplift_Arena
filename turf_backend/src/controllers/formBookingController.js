@@ -77,6 +77,36 @@ exports.createFormBooking = async (req, res) => {
       }
     }
 
+    // Enforce per-user per-day per-sport hour limit
+    if (req.userId) {
+      const isBigTurf = turfId === 'big-turf';
+      const maxMinutes = isBigTurf ? 120 : 60;
+      const calcMins = (slotArr) => slotArr.reduce((sum, s) => {
+        const [fH, fM] = s.startTime.split(':').map(Number);
+        const [tH, tM] = s.endTime.split(':').map(Number);
+        let diff = (tH * 60 + tM) - (fH * 60 + fM);
+        if (diff <= 0) diff += 24 * 60;
+        return sum + diff;
+      }, 0);
+
+      const existingBookings = await FormBooking.find({
+        user: req.userId,
+        sport: sport || 'GENERAL',
+        bookingDate,
+        status: { $ne: 'cancelled' }
+      });
+      const alreadyBookedMins = existingBookings.reduce((sum, b) => sum + calcMins(b.slots), 0);
+      const newMins = calcMins(sortedSlots);
+
+      if (alreadyBookedMins + newMins > maxMinutes) {
+        const label = isBigTurf ? 'Big Turf' : (sport || 'this sport');
+        const maxHrs = isBigTurf ? 2 : 1;
+        return res.status(400).json({
+          message: `You can only book ${label} for a maximum of ${maxHrs} hour${maxHrs > 1 ? 's' : ''} per day.`
+        });
+      }
+    }
+
     // Check conflicts for each slot
     for (const slot of sortedSlots) {
       const conflict = await FormBooking.findOne({

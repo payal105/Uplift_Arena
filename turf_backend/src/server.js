@@ -5,6 +5,7 @@ require("dotenv").config({
 });
 
 const app = require("./app");
+const { startMembershipExpiryCron } = require("./cron/membershipExpiryCron");
 
 // On Vercel (serverless), export the app as the handler.
 // Locally, start the HTTP server normally.
@@ -20,6 +21,9 @@ if (process.env.VERCEL) {
         console.log(`Server running on port ${PORT}`);
         console.log(`API available at http://localhost:${PORT}/api`);
       });
+
+      // Start scheduled jobs after DB is connected
+      startMembershipExpiryCron();
 
       server.on("error", (error) => {
         console.error("Server error:", error);

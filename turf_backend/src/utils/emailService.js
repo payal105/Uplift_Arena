@@ -179,4 +179,129 @@ const sendBookingConfirmationEmail = async (booking, recipientEmail) => {
   });
 };
 
-module.exports = { sendBookingConfirmationEmail };
+module.exports = { sendBookingConfirmationEmail, sendMembershipExpiryEmail };
+
+
+/**
+ * Sends a membership expiry reminder email on the day the plan expires.
+ * @param {Object} membership - The membership document
+ */
+async function sendMembershipExpiryEmail(membership) {
+  const { name, email, membershipType, endDate } = membership;
+  if (!email) return;
+
+  const siteUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+  const membershipPageUrl = `${siteUrl}/my-membership`;
+  const upgradeUrl = `${siteUrl}/membership`;
+
+  // Format endDate → DD-MM-YYYY
+  const formatDate = (d) => {
+    const date = new Date(d);
+    const dd = String(date.getDate()).padStart(2, '0');
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const yyyy = date.getFullYear();
+    return `${dd}-${mm}-${yyyy}`;
+  };
+
+  const formattedEnd = formatDate(endDate);
+
+  const htmlContent = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+      </head>
+      <body style="margin:0; padding:0; background-color:#f4f4f4; font-family: Arial, sans-serif;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f4f4; padding: 30px 0;">
+          <tr>
+            <td align="center">
+              <table width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff; border-radius:8px; overflow:hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+
+                <!-- Header -->
+                <tr>
+                  <td style="background-color:#08295E; padding: 28px 32px; text-align:center;">
+                    <h1 style="color:#ffffff; margin:0; font-size:24px; letter-spacing:1px;">Uplift Sports Arena</h1>
+                    <p style="color:#A6CE39; margin:6px 0 0; font-size:14px;">Membership Expiry Notice</p>
+                  </td>
+                </tr>
+
+                <!-- Greeting -->
+                <tr>
+                  <td style="padding: 28px 32px 16px;">
+                    <p style="font-size:16px; color:#333; margin:0;">Hi <strong>${name}</strong>,</p>
+                    <p style="font-size:15px; color:#555; margin:12px 0 0; line-height:1.7;">
+                      Your <strong>${membershipType}</strong> membership at Uplift Sports Arena
+                      <strong>expires today (${formattedEnd})</strong>.
+                    </p>
+                    <p style="font-size:15px; color:#555; margin:10px 0 0; line-height:1.7;">
+                      Don't miss out on uninterrupted access to our courts and facilities.
+                      Renew or upgrade your plan today to keep playing!
+                    </p>
+                  </td>
+                </tr>
+
+                <!-- Membership Summary -->
+                <tr>
+                  <td style="padding: 0 32px 24px;">
+                    <table width="100%" cellpadding="0" cellspacing="0" style="border: 1px solid #e0e0e0; border-radius:6px; overflow:hidden; font-size:14px;">
+                      <tr style="background-color:#f9f9f9;">
+                        <td style="padding: 10px 12px; font-weight:700; color:#08295E; font-size:13px; text-transform:uppercase; letter-spacing:0.5px;" colspan="2">Membership Details</td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 8px 12px; border-bottom: 1px solid #eee; color: #555;">Member Name</td>
+                        <td style="padding: 8px 12px; border-bottom: 1px solid #eee; font-weight: 600;">${name}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 8px 12px; border-bottom: 1px solid #eee; color: #555;">Plan</td>
+                        <td style="padding: 8px 12px; border-bottom: 1px solid #eee; font-weight: 600;">${membershipType}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 8px 12px; color: #555;">Expiry Date</td>
+                        <td style="padding: 8px 12px; font-weight: 600; color: #c0392b;">${formattedEnd}</td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+
+                <!-- CTA Button -->
+                <tr>
+                  <td style="padding: 0 32px 32px; text-align:center;">
+                    <a href="${upgradeUrl}"
+                      style="display:inline-block; background-color:#A6CE39; color:#08295E; text-decoration:none;
+                             font-weight:700; font-size:15px; padding:14px 32px; border-radius:6px;
+                             border: 2px solid #08295E; letter-spacing:0.3px;">
+                      Upgrade to Annual Plan
+                    </a>
+                    <p style="margin:12px 0 0; font-size:13px; color:#888;">
+                      Or view your membership details at
+                      <a href="${membershipPageUrl}" style="color:#08295E; font-weight:600;">My Membership</a>
+                    </p>
+                  </td>
+                </tr>
+
+                <!-- Footer -->
+                <tr>
+                  <td style="background-color:#f0f0f0; padding: 16px 32px; text-align:center;">
+                    <p style="font-size:13px; color:#555; margin:0 0 6px;">
+                      <a href="${siteUrl}" style="color:#08295E; text-decoration:none; font-weight:600;">${siteUrl}</a>
+                    </p>
+                    <p style="font-size:12px; color:#aaa; margin:0;">© ${new Date().getFullYear()} Uplift Sports Arena. All rights reserved.</p>
+                  </td>
+                </tr>
+
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+    </html>
+  `;
+
+  await createTransporter().sendMail({
+    from: `"Uplift Sports Arena" <${process.env.EMAIL_USER}>`,
+    to: email,
+    subject: `Your Membership Expires Today – Renew Now | Uplift Sports Arena`,
+    html: htmlContent,
+  });
+}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import api from '../api/axios';
 
 const PLAN_LABELS = {
@@ -90,7 +90,7 @@ const MyMembership = () => {
               <i className="fa-regular fa-id-card" style={{ fontSize: '3.5rem', color: '#ccc', marginBottom: '16px', display: 'block' }}></i>
               <h5 style={{ color: '#666' }}>No active membership found</h5>
               <p style={{ color: '#999' }}>You don't have an active membership plan yet.</p>
-              <Link to="/membership" className="btn btn-primary mt-2">Explore Membership Plans</Link>
+              <Link to="/membership" className="btn btn-primary mt-2" style={{ color: '#08295E' }}>Explore Membership Plans</Link>
             </div>
           )}
 
@@ -176,6 +176,19 @@ const MyMembership = () => {
                         )}
                       </div>
                     </div>
+
+                    {/* Upgrade CTA — shown when plan is expiring today or fewer than 30 days left */}
+                    {daysLeft !== null && daysLeft <= 30 && (
+                      <div style={{ marginTop: '20px', textAlign: 'center' }}>
+                        <Link
+                          to="/membership"
+                          className="btn btn-primary"
+                          style={{ backgroundImage: 'none', paddingLeft: '16px', color: '#08295E', fontWeight: '700' }}
+                        >
+                          Upgrade to Annual Plan
+                        </Link>
+                      </div>
+                    )}
 
                   </div>
                 </div>
