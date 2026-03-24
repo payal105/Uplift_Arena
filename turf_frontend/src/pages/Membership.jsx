@@ -127,22 +127,22 @@ const facilities = [
     svg: <BadmintonIcon />,
     title: 'Badminton',
     description: '2 indoor courts — BWF Approved Yonex mat for professional play',
-    included: false,
-    note: '₹100 / hr per member',
+        included: true,
+        note: 'Complimentary',
   },
   {
     svg: <TennisIcon />,
     title: 'Tennis',
     description: '2 indoor courts — clay surface courts for an authentic game experience',
-    included: false,
-    note: '₹100 / hr per member',
+    included: true,
+    note: 'Complimentary',
   },
   {
     svg: <PickleballIcon />,
     title: 'Pickleball',
     description: '2 indoor courts — 9-layer professional coating for optimal performance',
-    included: false,
-    note: '₹100 / hr per member',
+    included: true,
+    note: 'Complimentary',
   },
 ];
 
@@ -312,7 +312,7 @@ const Membership = () => {
       <section className="section-padding">
         <div className="container">
           <div className="heading-part text-center mb-5">
-            <h2>Rates for Futsal &amp; Big Turf</h2>
+            <h2>Rates</h2>
             <p className="text-muted">Get access to our premium turf facilities</p>
           </div>
           <div className="row g-4 justify-content-center">
@@ -330,6 +330,32 @@ const Membership = () => {
                         <span className="display-6 fw-bold">{sport.rate}</span>
                       </div>
                       <p className="text-muted small mt-1 mb-0">{sport.unit}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Indoor Courts */}
+          <div className="row g-4 justify-content-center mt-0">
+            {[
+              { title: 'Badminton', subtitle: 'per hour (max 4 pax)', color: 'blue' },
+              { title: 'Pickleball', subtitle: 'per hour (max 4 pax)', color: 'green' },
+              { title: 'Tennis', subtitle: 'per hour (max 4 pax)', color: 'purple' },
+            ].map((sport, index) => (
+              <div key={index} className="col-sm-10 col-md-6 col-lg-3">
+                <div className={`card h-100 membership-sport-card shadow border-0 sport-${sport.color}`}>
+                  <div className="card-body p-4">
+                    <div className="mb-3">
+                      <h5 className="mb-1 fw-bold" style={{color:'#000'}}>{sport.title}</h5>
+                    </div>
+                    <hr className="my-3" />
+                    <div className="text-center">
+                      <div className="price-display">
+                        <span className="display-6 fw-bold">₹1,200</span>
+                      </div>
+                      <p className="text-muted small mt-1 mb-0">{sport.subtitle}</p>
                     </div>
                   </div>
                 </div>
