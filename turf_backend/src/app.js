@@ -8,9 +8,13 @@ const app = express();
 // Allowed origins
 const allowedOrigins = [
   "https://uplift-arena-lmg1.vercel.app",
+  "https://upliftsportsarena.com",
+  "https://www.upliftsportsarena.com",
+  "https://booking.upliftsportsarena.com",
   "http://localhost:5173",
   "http://localhost:5174",
   "http://localhost:3000",
+  "http://localhost:4000",
 ];
 
 // Global middlewares

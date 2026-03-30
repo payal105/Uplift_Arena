@@ -7,10 +7,10 @@ const FIXED_SLOTS = [
   { label: '7:00 - 8:00 AM',   startTime: '07:00', endTime: '08:00' },
   { label: '8:00 - 9:00 AM',   startTime: '08:00', endTime: '09:00' },
   { label: '9:00 - 10:00 AM',  startTime: '09:00', endTime: '10:00' },
-  { label: '5:30 - 6:30 PM',   startTime: '17:30', endTime: '18:30' },
-  { label: '6:30 - 7:30 PM',   startTime: '18:30', endTime: '19:30' },
-  { label: '7:30 - 8:30 PM',   startTime: '19:30', endTime: '20:30' },
-  { label: '8:30 - 9:30 PM',   startTime: '20:30', endTime: '21:30' },
+  { label: '6:00 - 7:00 PM',   startTime: '18:00', endTime: '19:00' },
+  { label: '7:00 - 8:00 PM',   startTime: '19:00', endTime: '20:00' },
+  { label: '8:00 - 9:00 PM',   startTime: '20:00', endTime: '21:00' },
+  { label: '9:00 - 10:00 PM',  startTime: '21:00', endTime: '22:00' },
 ];
 
 const PRICING = {

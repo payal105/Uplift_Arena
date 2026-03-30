@@ -2,7 +2,9 @@ import React, { useEffect } from 'react';
 
 const Gallery = () => {
   const COLUMNS = 5;
-  const images = Array.from({ length: Math.floor(43 / COLUMNS) * COLUMNS }, (_, i) => `/assets/gallery/${i + 1}.jpeg`);
+  const images = Array.from({ length: Math.floor(43 / COLUMNS) * COLUMNS }, (_, i) => i + 1)
+    .filter(num => num !== 17 && num !== 20 && num !== 25 && num !== 33)
+    .map(num => `/assets/gallery/${num}.jpeg`);
 
   useEffect(() => {
     // Initialize Fancybox when component mounts

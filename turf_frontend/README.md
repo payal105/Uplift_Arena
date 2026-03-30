@@ -1,6 +1,6 @@
-# Sportitude - Turf Booking Frontend
+# Uplift Sports Arena - Turf Booking Frontend
 
-This is the React-based frontend for the Sportitude turf booking system, converted from the original HTML template.
+This is the React-based frontend for the Uplift Sports Arena turf booking system, converted from the original HTML template.
 
 ## Features
 
@@ -92,7 +92,7 @@ Navigation bar with logo, menu items, and contact button.
 Hero section with main call-to-action and key features.
 
 ### About
-Information about Sportitude with feature highlights.
+Information about Uplift Sports Arena with feature highlights.
 
 ### BookingForm
 Interactive booking form with:
@@ -140,4 +140,4 @@ This will create an optimized production build in the `dist/` directory.
 
 ## License
 
-All Rights Reserved © 2026 Sportitude
+All Rights Reserved © 2026 Uplift Sports Arena
