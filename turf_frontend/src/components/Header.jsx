@@ -1,9 +1,19 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 
 const Header = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [user, setUser] = useState(null);
+
+  // Close the mobile menu automatically upon navigation
+  useEffect(() => {
+    const navbarCollapse = document.getElementById('navbarText');
+    if (navbarCollapse && navbarCollapse.classList.contains('show')) {
+      const toggler = document.querySelector('.navbar-toggler');
+      if (toggler) toggler.click();
+    }
+  }, [location]);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -76,6 +86,34 @@ const Header = () => {
                       <Link className="nav-link" to="/contact">
                         Contact Us
                       </Link>
+                    </li>
+                    {/* Mobile Authentication Menu */}
+                    <li className="nav-item d-lg-none" style={{ borderBottom: 'none' }}>
+                      {user ? (
+                        <div className="d-flex flex-column">
+                          <div className="px-3 py-3 text-primary" style={{ fontWeight: 700, backgroundColor: '#f8f9fa', borderBottom: '1px solid rgb(226, 226, 226)' }}>
+                            <i className="fa-solid fa-circle-user me-2"></i>
+                            {user.name}
+                          </div>
+                          <Link className="nav-link w-100 m-0" to="/my-bookings" style={{ borderBottom: '1px solid rgb(226, 226, 226)' }}>
+                            <i className="fa-solid fa-calendar-check me-2"></i>My Bookings
+                          </Link>
+                          <Link className="nav-link w-100 m-0" to="/my-membership" style={{ borderBottom: '1px solid rgb(226, 226, 226)' }}>
+                            <i className="fa-solid fa-id-card me-2"></i>My Membership Plan
+                          </Link>
+                          <button 
+                            className="nav-link w-100 border-0 bg-transparent text-danger m-0" 
+                            style={{ fontWeight: 600, padding: '15px' }}
+                            onClick={handleLogout}
+                          >
+                            <i className="fa-solid fa-right-from-bracket me-2"></i>Logout
+                          </button>
+                        </div>
+                      ) : (
+                        <Link className="nav-link w-100 m-0" to="/login" style={{ fontWeight: 700, color: '#08295E' }}>
+                          Login / Signup
+                        </Link>
+                      )}
                     </li>
                   </ul>
                 </div>

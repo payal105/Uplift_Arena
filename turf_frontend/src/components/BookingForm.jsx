@@ -201,6 +201,10 @@ const BookingForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!isLoggedIn) {
+      toast.error('You must login first to book a court.');
+      return;
+    }
     if (formData.selectedSlots.length === 0) {
       toast.error('Please select at least one time slot');
       return;
@@ -563,19 +567,13 @@ const BookingForm = () => {
             </div>
 
             <div className="w-100 text-center mt-5">
-              <span
-                title={!isLoggedIn ? 'Please login to access' : ''}
-                style={{ display: 'inline-block', cursor: !isLoggedIn ? 'not-allowed' : 'default' }}
+              <button
+                type="submit"
+                className="btn btn-secondary"
+                disabled={bookingLoading}
               >
-                <button
-                  type="submit"
-                  className="btn btn-secondary"
-                  disabled={!isLoggedIn || bookingLoading}
-                  style={{ pointerEvents: !isLoggedIn ? 'none' : 'auto' }}
-                >
-                  {bookingLoading ? 'Booking...' : 'Book Now'}
-                </button>
-              </span>
+                {bookingLoading ? 'Booking...' : 'Book Now'}
+              </button>
             </div>
           </form>
         </div>
