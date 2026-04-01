@@ -25,6 +25,14 @@ const membershipSchema = new mongoose.Schema({
 
   isActive: { type: Number, default: 1 }, // 1 = active, 0 = inactive
 
+  paymentStatus: {
+    type: String,
+    enum: ["PENDING", "SUCCESS"],
+    default: "PENDING"
+  },
+
+  payuTxnId: { type: String, default: null },
+
 }, { timestamps: true });
 
 module.exports = mongoose.model("Membership", membershipSchema);

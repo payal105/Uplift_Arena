@@ -309,22 +309,34 @@ const BookingForm = () => {
     if (!paymentSummary) return;
     setPaymentLoading(true);
     try {
-      await api.post('/api/form-bookings', {
+      const res = await api.post('/api/payments/payu/initiate-booking', {
         sport: paymentSummary.sport,
         turfId: paymentSummary.turfId,
         bookingDate: paymentSummary.date,
         slots: paymentSummary.slots,
         bringGuests: paymentSummary.bringGuests,
-        guestCount: paymentSummary.guestCount
+        guestCount: paymentSummary.guestCount,
       }, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('userToken')}` }
+        headers: { Authorization: `Bearer ${localStorage.getItem('userToken')}` },
       });
-      setShowPaymentModal(false);
-      setPaymentSummary(null);
-      const options = turfOptionsByGame[paymentSummary.sport] || [];
-      const autoTurf = options.length === 1 ? options[0].value : '';
-      setFormData({ date: getTodayDate(), turfId: autoTurf, selectedSlots: [], bringGuests: false, guestCount: '' });
-      toast.success('Booking confirmed!');
+
+      const { payuParams } = res.data;
+
+      // Build and submit form to PayU (browser redirect)
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = payuParams.payuUrl;
+      Object.entries(payuParams).forEach(([key, value]) => {
+        if (key === 'payuUrl') return;
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = key;
+        input.value = value ?? '';
+        form.appendChild(input);
+      });
+      document.body.appendChild(form);
+      form.submit();
+      // Page will navigate away — no need to reset loading state
     } catch (err) {
       const formatTime = (time24) => {
         const [h, m] = time24.split(':').map(Number);
@@ -332,11 +344,10 @@ const BookingForm = () => {
         const hour = h % 12 === 0 ? 12 : h % 12;
         return `${hour}:${String(m).padStart(2, '0')} ${period}`;
       };
-      let errMsg = err.response?.data?.message || 'Booking failed. Please try again.';
+      let errMsg = err.response?.data?.message || 'Failed to initiate payment. Please try again.';
       errMsg = errMsg.replace(/(\d{2}:\d{2})[–-](\d{2}:\d{2})/g, (_, t1, t2) => `${formatTime(t1)} - ${formatTime(t2)}`);
       errMsg = errMsg.replace(/(\d{4})-(\d{2})-(\d{2})/g, (_, y, mo, d) => `${d}-${mo}-${y}`);
       toast.error(errMsg);
-    } finally {
       setPaymentLoading(false);
     }
   };
@@ -677,7 +688,7 @@ const BookingForm = () => {
                         Processing...
                       </>
                     ) : (
-                      'Proceed to Payment'
+                      'Pay Now'
                     )}
                   </button>
                 </div>

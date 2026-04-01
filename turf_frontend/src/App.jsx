@@ -20,6 +20,8 @@ import PrivacyPolicy from './pages/PrivacyPolicy';
 import PaymentPolicy from './pages/PaymentPolicy';
 import UsagePolicy from './pages/UsagePolicy';
 
+import PaymentReturn from './pages/PaymentReturn';
+
 function HomePage() {
   return (
     <>
@@ -66,6 +68,7 @@ function App() {
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/payment-policy" element={<PaymentPolicy />} />
           <Route path="/usage-policy" element={<UsagePolicy />} />
+          <Route path="/payment-return" element={<PaymentReturn />} />
           <Route path="/admin" element={<AdminRedirect />} />
         </Routes>
         <Footer />
