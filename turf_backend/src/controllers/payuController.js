@@ -259,10 +259,15 @@ exports.initiateMembershipPayment = async (req, res) => {
       return res.status(400).json({ message: 'activityChoice is required for this membership type.' });
     }
 
-    const price = MEMBERSHIP_PRICES[membershipType];
-    if (!price) {
+    const basePrice = MEMBERSHIP_PRICES[membershipType];
+    if (!basePrice) {
       return res.status(400).json({ message: 'Invalid membership type.' });
     }
+
+    // Apply 18% GST
+    const GST_RATE = 0.18;
+    const gstAmount = Math.round(basePrice * GST_RATE);
+    const totalAmount = basePrice + gstAmount;
 
     // Compute validity dates
     const getDurationDays = (type) => (type === 'monthly-individual-activity' ? 30 : 365);
@@ -289,12 +294,15 @@ exports.initiateMembershipPayment = async (req, res) => {
       message:        message || '',
       startDate,
       endDate,
+      basePrice,
+      gstAmount,
+      totalAmount,
       isActive:       0,
       paymentStatus:  'PENDING',
     });
 
     const txnid       = generateTxnId();
-    const amountStr   = price.toFixed(2);
+    const amountStr   = totalAmount.toFixed(2);
     const productinfo = `Membership - ${membershipType}`;
     const firstname   = name.split(' ')[0] || 'User';
 
@@ -307,6 +315,12 @@ exports.initiateMembershipPayment = async (req, res) => {
     });
 
     res.json({
+      pricing: {
+        basePrice,
+        gstRate: 18,
+        gstAmount,
+        totalAmount,
+      },
       payuParams: {
         payuUrl:     PAYU_URL,
         key:         PAYU_KEY,

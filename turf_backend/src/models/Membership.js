@@ -25,9 +25,13 @@ const membershipSchema = new mongoose.Schema({
 
   isActive: { type: Number, default: 1 }, // 1 = active, 0 = inactive
 
+  basePrice:   { type: Number, default: null },
+  gstAmount:   { type: Number, default: null },
+  totalAmount: { type: Number, default: null },
+
   paymentStatus: {
     type: String,
-    enum: ["PENDING", "SUCCESS"],
+    enum: ["PENDING", "SUCCESS", "FAILED"],
     default: "PENDING"
   },
 
