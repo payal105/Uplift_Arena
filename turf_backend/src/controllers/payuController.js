@@ -1,5 +1,4 @@
 const crypto = require('crypto');
-const { v4: uuidv4 } = require('uuid');
 const FormBooking = require('../models/FormBooking');
 const Membership = require('../models/Membership');
 const UserData = require('../models/UserData');
@@ -67,7 +66,7 @@ function verifyHash(body) {
 
 function generateTxnId() {
   // PayU txnid: max 25 chars, alphanumeric
-  return uuidv4().replace(/-/g, '').substring(0, 20).toUpperCase();
+  return crypto.randomUUID().replace(/-/g, '').substring(0, 20).toUpperCase();
 }
 
 // -----------------------------------------------------------
