@@ -11,7 +11,11 @@ const userDataSchema = new mongoose.Schema({
 
   isActive: { type: Boolean, default: true },
 
-  isMember: { type: Number, default: 0 } // 0 = non-member, 1 = member
+  isMember: { type: Number, default: 0 }, // 0 = non-member, 1 = member
+
+  resetToken: { type: String, default: null },
+
+  resetTokenExpiry: { type: Date, default: null }
 
 }, { timestamps: true })
 

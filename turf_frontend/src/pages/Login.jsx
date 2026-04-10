@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import api from '../api/axios';
 
 const Login = () => {
@@ -208,6 +208,20 @@ const Login = () => {
                         </>
                       ) : 'Login'}
                     </button>
+
+                    <div style={{ marginTop: '16px', textAlign: 'center' }}>
+                      <Link
+                        to="/forgot-password"
+                        style={{
+                          color: '#08295E',
+                          textDecoration: 'none',
+                          fontSize: '14px',
+                          fontWeight: '500'
+                        }}
+                      >
+                        Forgot your password?
+                      </Link>
+                    </div>
 
                     <p className="switch-text mt-3 text-center">
                       Don't have an account?{' '}

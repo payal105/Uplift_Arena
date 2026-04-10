@@ -19,6 +19,8 @@ import MyMembership from './pages/MyMembership';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import PaymentPolicy from './pages/PaymentPolicy';
 import UsagePolicy from './pages/UsagePolicy';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 
 function HomePage() {
   return (
@@ -66,6 +68,8 @@ function App() {
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/payment-policy" element={<PaymentPolicy />} />
           <Route path="/usage-policy" element={<UsagePolicy />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/admin" element={<AdminRedirect />} />
         </Routes>
         <Footer />

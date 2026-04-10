@@ -196,6 +196,28 @@ const BookingForm = () => {
     setFormData(prev => ({ ...prev, turfId: autoTurf, selectedSlots: [] }));
   }, [activeGame]);
 
+  // Check if a slot has passed (either past date or past time on today's date)
+  const isSlotPassed = (slotStartTime) => {
+    const today = getTodayDate();
+    const selectedDate = formData.date;
+    
+    // If selected date is in the past, disable all slots
+    if (selectedDate < today) return true;
+    
+    // If selected date is in the future, enable all slots
+    if (selectedDate > today) return false;
+    
+    // If selected date is today, check if slot time has passed
+    // Get current time in HH:mm format
+    const now = new Date();
+    const currentHrs = String(now.getHours()).padStart(2, '0');
+    const currentMins = String(now.getMinutes()).padStart(2, '0');
+    const currentTime = `${currentHrs}:${currentMins}`;
+    
+    // Compare: if slot start time is <= current time, it has passed
+    return slotStartTime <= currentTime;
+  };
+
   // Max slots a user can select: 2 for Big Turf, 1 for everything else
   const maxSlots = formData.turfId === 'big-turf' ? 2 : 1;
 
@@ -415,6 +437,7 @@ const BookingForm = () => {
                           className="form-control"
                           id="b_date"
                           value={formData.date}
+                          min={getTodayDate()}
                           onChange={(e) => setFormData({ ...formData, date: e.target.value })}
                           required
                         />
@@ -444,17 +467,25 @@ const BookingForm = () => {
                         <div className="d-flex flex-nowrap gap-2 mt-2" style={{ overflowX: 'auto', paddingBottom: '4px' }}>
                           {FIXED_SLOTS.map((slot) => {
                             const isSelected = formData.selectedSlots.includes(slot.startTime);
+                            const slotPassed = isSlotPassed(slot.startTime);
                             const limitReached = !isSelected && formData.selectedSlots.length >= maxSlots;
+                            const isDisabled = limitReached || slotPassed;
+                            const today = getTodayDate();
+                            const getDisabledMessage = () => {
+                              if (slotPassed && formData.date === today) return 'This time slot has already passed';
+                              if (limitReached) return formData.turfId === 'big-turf' ? 'Maximum 2 hours allowed per day' : 'Maximum 1 hour allowed per day';
+                              return '';
+                            };
                             return (
                               <span
                                 key={slot.label}
-                                title={limitReached ? (formData.turfId === 'big-turf' ? 'Maximum 2 hours allowed per day' : 'Maximum 1 hour allowed per day') : ''}
-                                style={{ display: 'inline-block', cursor: limitReached ? 'not-allowed' : 'default' }}
+                                title={getDisabledMessage()}
+                                style={{ display: 'inline-block', cursor: isDisabled ? 'not-allowed' : 'default' }}
                               >
                               <button
                                 type="button"
                                 className="btn btn-sm"
-                                disabled={limitReached}
+                                disabled={isDisabled}
                                 style={{
                                   borderRadius: '20px',
                                   whiteSpace: 'nowrap',
@@ -467,8 +498,8 @@ const BookingForm = () => {
                                   border: '1.5px solid #08295E',
                                   outline: 'none',
                                   boxShadow: 'none',
-                                  opacity: limitReached ? 0.4 : 1,
-                                  pointerEvents: limitReached ? 'none' : 'auto'
+                                  opacity: isDisabled ? 0.4 : 1,
+                                  pointerEvents: isDisabled ? 'none' : 'auto'
                                 }}
                                 onClick={() => {
                                   const already = formData.selectedSlots.includes(slot.startTime);

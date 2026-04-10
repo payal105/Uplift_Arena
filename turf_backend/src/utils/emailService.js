@@ -179,8 +179,103 @@ const sendBookingConfirmationEmail = async (booking, recipientEmail) => {
   });
 };
 
-module.exports = { sendBookingConfirmationEmail, sendMembershipExpiryEmail };
+/**
+ * Sends a password reset email with reset link.
+ * @param {string} email - User's email
+ * @param {string} name - User's name
+ * @param {string} resetLink - Password reset link
+ */
+const sendPasswordResetEmail = async (email, name, resetLink) => {
+  const siteUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
 
+  const htmlContent = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+      </head>
+      <body style="margin:0; padding:0; background-color:#f4f4f4; font-family: Arial, sans-serif;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f4f4; padding: 30px 0;">
+          <tr>
+            <td align="center">
+              <table width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff; border-radius:8px; overflow:hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                <!-- Header -->
+                <tr>
+                  <td style="background-color:#08295E; padding: 28px 32px; text-align:center;">
+                    <h1 style="color:#ffffff; margin:0; font-size:24px; letter-spacing:1px;">Uplift Sports Arena</h1>
+                    <p style="color:#A6CE39; margin:6px 0 0; font-size:14px;">Password Reset Request</p>
+                  </td>
+                </tr>
+
+                <!-- Greeting -->
+                <tr>
+                  <td style="padding: 28px 32px 16px;">
+                    <p style="font-size:16px; color:#333; margin:0;">Hi <strong>${name}</strong>,</p>
+                    <p style="font-size:15px; color:#555; margin:12px 0 0; line-height:1.7;">
+                      We received a request to reset your password. Click the button below to set a new password.
+                    </p>
+                    <p style="font-size:13px; color:#999; margin:14px 0 0;">This link will expire in 1 hour.</p>
+                  </td>
+                </tr>
+
+                <!-- CTA Button -->
+                <tr>
+                  <td style="padding: 24px 32px; text-align:center;">
+                    <a href="${resetLink}"
+                      style="display:inline-block; background-color:#A6CE39; color:#08295E; text-decoration:none;
+                             font-weight:700; font-size:15px; padding:14px 32px; border-radius:6px;
+                             border: 2px solid #08295E; letter-spacing:0.3px;">
+                      Reset Password
+                    </a>
+                  </td>
+                </tr>
+
+                <!-- Manual Link -->
+                <tr>
+                  <td style="padding: 0 32px 24px;">
+                    <p style="font-size:12px; color:#999; margin:0 0 8px;">If the button doesn't work, copy and paste this link in your browser:</p>
+                    <p style="font-size:12px; color:#08295E; word-break: break-all; margin:0;">
+                      <a href="${resetLink}" style="color:#08295E; text-decoration:none;">${resetLink}</a>
+                    </p>
+                  </td>
+                </tr>
+
+                <!-- Warning -->
+                <tr>
+                  <td style="padding: 16px 32px; background-color:#fff3cd; border-left: 4px solid #ffc107;">
+                    <p style="font-size:12px; color:#856404; margin:0; line-height:1.6;">
+                      <strong>Didn't request a password reset?</strong> Ignore this email if you didn't request this action.
+                      Your password will remain unchanged.
+                    </p>
+                  </td>
+                </tr>
+
+                <!-- Footer -->
+                <tr>
+                  <td style="background-color:#f0f0f0; padding: 16px 32px; text-align:center;">
+                    <p style="font-size:13px; color:#555; margin:0 0 6px;">
+                      <a href="${siteUrl}" style="color:#08295E; text-decoration:none; font-weight:600;">${siteUrl}</a>
+                    </p>
+                    <p style="font-size:12px; color:#aaa; margin:0;">© ${new Date().getFullYear()} Uplift Sports Arena. All rights reserved.</p>
+                  </td>
+                </tr>
+
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+    </html>
+  `;
+
+  await createTransporter().sendMail({
+    from: `"Uplift Sports Arena" <${process.env.EMAIL_USER}>`,
+    to: email,
+    subject: 'Reset Your Password – Uplift Sports Arena',
+    html: htmlContent,
+  });
+};
 
 /**
  * Sends a membership expiry reminder email on the day the plan expires.
@@ -305,3 +400,5 @@ async function sendMembershipExpiryEmail(membership) {
     html: htmlContent,
   });
 }
+
+module.exports = { sendBookingConfirmationEmail, sendMembershipExpiryEmail, sendPasswordResetEmail };
