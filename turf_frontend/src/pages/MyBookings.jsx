@@ -82,7 +82,7 @@ const MyBookings = () => {
               <i className="fa-regular fa-calendar-xmark" style={{ fontSize: '3rem', color: '#ccc', marginBottom: '16px', display: 'block' }}></i>
               <h5 style={{ color: '#666' }}>No bookings found</h5>
               <p style={{ color: '#999' }}>You haven't made any bookings yet.</p>
-              <button className="btn btn-primary mt-2" onClick={() => navigate('/#booking')}>
+              <button className="btn btn-secondary mt-2" onClick={() => navigate('/#booking')}>
                 Book Now
               </button>
             </div>

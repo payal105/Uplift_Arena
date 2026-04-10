@@ -195,6 +195,9 @@ const Membership = () => {
     }
   };
 
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [pendingPayment, setPendingPayment] = useState(null); // { pricing, payuParams }
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitError('');
@@ -226,12 +229,13 @@ const Membership = () => {
     try {
       const token = localStorage.getItem('userToken');
       if (!token || token === 'null' || token === 'undefined') {
-        setSubmitError('You must be logged in to submit a membership enquiry.');
+        setSubmitError('You must be logged in to purchase a membership.');
         setSubmitting(false);
         return;
       }
-      await api.post(
-        '/api/memberships',
+
+      const res = await api.post(
+        '/api/payments/payu/initiate-membership',
         {
           name: formData.name,
           email: formData.email,
@@ -242,23 +246,52 @@ const Membership = () => {
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      toast.success('Membership submitted successfully!');
-      setFormData({ name: '', email: '', phone: '', membershipType: '', activityChoice: '', message: '' });
+
+      const { pricing, payuParams } = res.data;
+
+      // Show confirmation modal with GST breakdown
+      setPendingPayment({ pricing, payuParams });
+      setShowConfirmModal(true);
+      setSubmitting(false);
     } catch (err) {
       const status = err.response?.status;
       const msg = err.response?.data?.message || '';
       if (status === 401) {
-        // Clear stale token and redirect to login
         localStorage.removeItem('userToken');
         localStorage.removeItem('userInfo');
         window.dispatchEvent(new Event('userAuthChanged'));
         navigate('/login', { state: { from: '/membership', message: msg || 'Your session has expired. Please log in again.' } });
         return;
       }
-      setSubmitError(msg || 'Submission failed. Please try again.');
-    } finally {
+      setSubmitError(msg || 'Failed to initiate payment. Please try again.');
       setSubmitting(false);
     }
+  };
+
+  const handleConfirmPayment = () => {
+    if (!pendingPayment) return;
+    const { payuParams } = pendingPayment;
+
+    // Build and submit form to PayU (browser redirect)
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = payuParams.payuUrl;
+    Object.entries(payuParams).forEach(([key, value]) => {
+      if (key === 'payuUrl') return;
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = key;
+      input.value = value ?? '';
+      form.appendChild(input);
+    });
+    document.body.appendChild(form);
+    setSubmitting(true);
+    form.submit();
+  };
+
+  const handleCancelPayment = () => {
+    setShowConfirmModal(false);
+    setPendingPayment(null);
   };
 
   return (
@@ -786,7 +819,7 @@ const Membership = () => {
                           onMouseLeave={e => { if (!submitting) { e.currentTarget.style.background = '#AADF6D'; e.currentTarget.style.borderColor = '#AADF6D'; e.currentTarget.style.color = '#08295E'; }}}
                         >
                           {submitting
-                            ? <><i className="fas fa-spinner fa-spin me-2"></i>Submitting...</>
+                            ? <><i className="fas fa-spinner fa-spin me-2"></i>Redirecting to Payment...</>
                             : <><i className="fas fa-arrow-right me-2"></i>Purchase Membership</>
                           }
                         </button>
@@ -798,6 +831,124 @@ const Membership = () => {
           </div>
         </div>
       </section>
+
+      {/* GST Confirmation Modal */}
+      {showConfirmModal && pendingPayment && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0,0,0,0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+            padding: '20px',
+          }}
+          onClick={handleCancelPayment}
+        >
+          <div
+            style={{
+              background: '#fff',
+              borderRadius: '16px',
+              maxWidth: '440px',
+              width: '100%',
+              padding: '32px',
+              boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+              animation: 'fadeInUp 0.3s ease',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="text-center mb-4">
+              <div
+                style={{
+                  width: '56px',
+                  height: '56px',
+                  borderRadius: '50%',
+                  background: '#f0f4fa',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: '12px',
+                }}
+              >
+                <i className="fas fa-receipt fa-lg" style={{ color: '#08295E' }}></i>
+              </div>
+              <h5 className="fw-bold mb-1" style={{ color: '#08295E' }}>Payment Summary</h5>
+              <p className="text-muted small mb-0">Review the pricing details before proceeding</p>
+            </div>
+
+            <div
+              style={{
+                background: '#f8f9fb',
+                borderRadius: '12px',
+                padding: '20px',
+                marginBottom: '24px',
+              }}
+            >
+              <div className="d-flex justify-content-between align-items-center mb-2">
+                <span className="text-muted">Membership Price</span>
+                <span className="fw-semibold">₹{pendingPayment.pricing.basePrice.toLocaleString('en-IN')}</span>
+              </div>
+              <div className="d-flex justify-content-between align-items-center mb-2">
+                <span className="text-muted">GST ({pendingPayment.pricing.gstRate}%)</span>
+                <span className="fw-semibold">₹{pendingPayment.pricing.gstAmount.toLocaleString('en-IN')}</span>
+              </div>
+              <hr style={{ margin: '12px 0', borderColor: '#dee2e6' }} />
+              <div className="d-flex justify-content-between align-items-center">
+                <span className="fw-bold" style={{ color: '#08295E', fontSize: '16px' }}>Total Payable</span>
+                <span className="fw-bold" style={{ color: '#08295E', fontSize: '20px' }}>
+                  ₹{pendingPayment.pricing.totalAmount.toLocaleString('en-IN')}
+                </span>
+              </div>
+            </div>
+
+            <div className="d-flex gap-3">
+              <button
+                onClick={handleCancelPayment}
+                style={{
+                  flex: 1,
+                  padding: '12px',
+                  borderRadius: '10px',
+                  border: '2px solid #dee2e6',
+                  background: '#fff',
+                  color: '#666',
+                  fontWeight: '600',
+                  fontSize: '15px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmPayment}
+                disabled={submitting}
+                style={{
+                  flex: 1,
+                  padding: '12px',
+                  borderRadius: '10px',
+                  border: '2px solid #AADF6D',
+                  background: submitting ? '#ccc' : '#AADF6D',
+                  color: '#08295E',
+                  fontWeight: '700',
+                  fontSize: '15px',
+                  cursor: submitting ? 'not-allowed' : 'pointer',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                {submitting
+                  ? <><i className="fas fa-spinner fa-spin me-2"></i>Redirecting...</>
+                  : <><i className="fas fa-lock me-2"></i>Pay Now</>
+                }
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

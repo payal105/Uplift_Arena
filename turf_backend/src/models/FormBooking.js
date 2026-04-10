@@ -42,9 +42,19 @@ const formBookingSchema = new mongoose.Schema({
 
   status: {
     type: String,
-    enum: ["confirmed", "cancelled", "completed"],
+    enum: ["confirmed", "cancelled", "completed", "pending_payment"],
     default: "confirmed"
-  }
+  },
+
+  paymentStatus: {
+    type: String,
+    enum: ["FREE", "PENDING", "SUCCESS", "FAILED"],
+    default: "FREE"
+  },
+
+  payuTxnId: { type: String, default: null },
+
+  totalAmount: { type: Number, default: 0 }
 
 }, { timestamps: true })
 

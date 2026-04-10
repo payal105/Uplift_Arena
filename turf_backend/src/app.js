@@ -11,14 +11,26 @@ const allowedOrigins = [
   "https://upliftsportsarena.com",
   "https://www.upliftsportsarena.com",
   "https://booking.upliftsportsarena.com",
+  "https://secure.payu.in",
+  "https://test.payu.in",
   "http://localhost:5173",
   "http://localhost:5174",
   "http://localhost:3000",
   "http://localhost:4000",
+  "http://localhost:5000",
 ];
 
 // Global middlewares
 app.use(express.json());
+app.use(express.urlencoded({ extended: false })); // Required for PayU webhook form POSTs
+
+// PayU success/failure callbacks must be registered BEFORE the CORS middleware.
+// PayU posts these as browser-side form redirects from its own domain, so they
+// must not be blocked by CORS. No auth or CORS restriction needed here.
+const payuController = require("./controllers/payuController");
+app.post("/api/payments/payu/success", payuController.handleSuccess);
+app.post("/api/payments/payu/failure", payuController.handleFailure);
+
 app.use(
   cors({
     origin: function (origin, callback) {
@@ -125,6 +137,11 @@ app.use("/api/contact", contactRoutes)
 const membershipRoutes = require("./routes/membershipRoutes")
 app.use("/api/memberships", membershipRoutes)
 console.log("✅ Membership routes loaded at /api/memberships")
+
+// PayU payment routes
+const payuRoutes = require('./routes/payuRoutes');
+app.use('/api/payments/payu', payuRoutes);
+console.log('✅ PayU payment routes loaded at /api/payments/payu');
 
 // Stats routes
 const statsRoutes = require("./routes/statsRoutes")
