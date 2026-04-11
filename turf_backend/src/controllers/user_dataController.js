@@ -24,7 +24,8 @@ exports.register = async (req, res) => {
       name,
       email,
       password: hashedPassword,
-      isVerified: true
+      isVerified: true,
+      isAdmin: 0
     });
 
     const token = generateToken({ userId: user._id, role: "USER" });
@@ -35,7 +36,10 @@ exports.register = async (req, res) => {
       user: {
         id: user._id,
         name: user.name,
-        email: user.email
+        email: user.email,
+        phone: user.phone || "",
+        city: user.city || "",
+        isAdmin: 0
       }
     });
   } catch (error) {
@@ -70,7 +74,11 @@ exports.login = async (req, res) => {
       user: {
         id: user._id,
         name: user.name,
-        email: user.email
+        email: user.email,
+        phone: user.phone,
+        city: user.city,
+        isAdmin: user.isAdmin || 0,
+        isMember: user.isMember || 0
       }
     });
   } catch (error) {

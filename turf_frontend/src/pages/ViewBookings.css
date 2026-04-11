@@ -1,0 +1,389 @@
+.view-bookings-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 40px 0;
+}
+
+.bookings-page-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 40px;
+  padding: 0 20px;
+}
+
+.btn-back {
+  background: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  color: #667eea;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.btn-back:hover {
+  background: #f0f0f0;
+  transform: translateX(-3px);
+}
+
+.bookings-page-header h1 {
+  color: white;
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.bookings-page-container {
+  padding: 0 20px;
+}
+
+.bookings-card {
+  background: white;
+  padding: 40px;
+  border-radius: 15px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+}
+
+.bookings-header {
+  border-bottom: 2px solid #e0e0e0;
+  padding-bottom: 20px;
+}
+
+.bookings-header h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #08295E;
+  margin: 0;
+}
+
+.bookings-header p {
+  margin: 5px 0 0 0;
+  font-size: 1rem;
+}
+
+.date-picker-section {
+  background: #f5f5f5;
+  padding: 20px;
+  border-radius: 10px;
+}
+
+.date-picker-section .form-label {
+  color: #08295E;
+  margin-bottom: 10px;
+  font-size: 1rem;
+}
+
+.date-picker-section .form-control {
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  padding: 10px 15px;
+  font-size: 1rem;
+}
+
+.date-picker-section .form-control:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+.filters-section {
+  background: #f9f9f9;
+  padding: 25px;
+  border-radius: 10px;
+  border: 1px solid #e0e0e0;
+}
+
+.filters-section .form-label {
+  color: #08295E;
+  margin-bottom: 8px;
+  font-size: 0.95rem;
+}
+
+.filters-section .form-select {
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  padding: 10px 15px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.filters-section .form-select:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+.bookings-grid h4 {
+  color: #08295E;
+  font-weight: 700;
+  font-size: 1.3rem;
+}
+
+.turf-section {
+  background: #f9f9f9;
+  padding: 25px;
+  border-radius: 12px;
+  border-left: 4px solid #667eea;
+  transition: all 0.3s ease;
+}
+
+.turf-section.has-bookings {
+  background: #f9f9f9;
+  border-left-color: #667eea;
+}
+
+.turf-title {
+  color: #08295E;
+  font-weight: 700;
+  font-size: 1.1rem;
+  margin: 0 0 20px 0;
+}
+
+.slots-timeline {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 20px 0;
+  scroll-behavior: smooth;
+  flex-wrap: wrap;
+}
+
+.slots-timeline::-webkit-scrollbar {
+  height: 8px;
+}
+
+.slots-timeline::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.slots-timeline::-webkit-scrollbar-thumb {
+  background: #667eea;
+  border-radius: 10px;
+}
+
+.time-slot {
+  padding: 12px 20px;
+  border-radius: 25px;
+  border: 2px solid #ddd;
+  background: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 600;
+  white-space: nowrap;
+  min-width: fit-content;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
+  color: #08295E;
+}
+
+.time-slot.available-slot {
+  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+  border-color: #43e97b;
+  color: white;
+  box-shadow: 0 4px 10px rgba(67, 233, 123, 0.2);
+}
+
+.time-slot.booked-slot {
+  background: #d3d3d3;
+  border-color: #999;
+  color: #333;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  cursor: not-allowed;
+  opacity: 1;
+}
+
+.time-slot:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 15px rgba(102, 126, 234, 0.3);
+}
+
+.time-slot.booked-slot:hover {
+  transform: translateY(0);
+  cursor: not-allowed;
+}
+
+.slot-time {
+  font-weight: 600;
+}
+
+.bookings-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+  margin-top: 30px;
+}
+
+.booking-slot {
+  border: 2px solid #ddd;
+  border-radius: 10px;
+  padding: 20px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+  min-height: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.booking-slot.booked {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-color: #667eea;
+  color: white;
+}
+
+.booking-slot.available {
+  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+  border-color: #43e97b;
+  color: white;
+}
+
+.booking-slot:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.booking-slot-content {
+  width: 100%;
+}
+
+.booking-turf-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.booking-slot-time {
+  font-size: 0.9rem;
+  margin-bottom: 10px;
+  opacity: 0.9;
+  font-weight: 600;
+}
+
+.booking-user-name {
+  font-size: 0.85rem;
+  margin-bottom: 8px;
+  opacity: 0.85;
+}
+
+.booking-amount {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.slot-badge {
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+}
+
+.slot-status {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.alert {
+  border-radius: 10px;
+  border: none;
+  background: #e3f2fd;
+  color: #1565c0;
+  padding: 30px;
+}
+
+@media (max-width: 768px) {
+  .bookings-page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 30px;
+  }
+
+  .bookings-page-header h1 {
+    font-size: 1.8rem;
+  }
+
+  .bookings-card {
+    padding: 20px;
+  }
+
+  .bookings-container {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 15px;
+  }
+
+  .booking-slot {
+    padding: 15px;
+    min-height: 150px;
+  }
+
+  .booking-turf-name {
+    font-size: 0.9rem;
+  }
+
+  .booking-amount {
+    font-size: 1rem;
+  }
+
+  .slots-timeline {
+    gap: 10px;
+    padding: 15px 0;
+  }
+
+  .time-slot {
+    padding: 10px 16px;
+    font-size: 0.9rem;
+  }
+
+  .filters-section .row {
+    flex-direction: column;
+  }
+
+  .filters-section .col-md-6,
+  .filters-section .col-lg-3 {
+    max-width: 100%;
+  }
+
+  .turf-section {
+    padding: 15px;
+  }
+
+  .turf-title {
+    font-size: 1rem;
+  }
+
+  .slots-timeline {
+    gap: 10px;
+    padding: 15px 0;
+  }
+
+  .time-slot {
+    padding: 10px 16px;
+    font-size: 0.9rem;
+  }
+}

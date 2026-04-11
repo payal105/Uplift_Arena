@@ -19,6 +19,8 @@ import MyMembership from './pages/MyMembership';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import PaymentPolicy from './pages/PaymentPolicy';
 import UsagePolicy from './pages/UsagePolicy';
+import AdminDashboard from './pages/AdminDashboard';
+import ViewBookings from './pages/ViewBookings';
 
 import PaymentReturn from './pages/PaymentReturn';
 import ForgotPassword from './pages/ForgotPassword';
@@ -70,6 +72,8 @@ function App() {
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/payment-policy" element={<PaymentPolicy />} />
           <Route path="/usage-policy" element={<UsagePolicy />} />
+          <Route path="/admin-dashboard" element={<AdminDashboard />} />
+          <Route path="/view-bookings" element={<ViewBookings />} />
           <Route path="/payment-return" element={<PaymentReturn />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />

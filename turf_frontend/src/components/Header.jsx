@@ -87,6 +87,13 @@ const Header = () => {
                         Contact Us
                       </Link>
                     </li>
+                    {user && user.isAdmin === 1 && (
+                      <li className="nav-item">
+                        <Link className="nav-link" to="/admin-dashboard" style={{ color: '#FF6B6B', fontWeight: 600 }}>
+                          <i className="fa-solid fa-gauge me-1"></i>Admin Dashboard
+                        </Link>
+                      </li>
+                    )}
                     {/* Mobile Authentication Menu */}
                     <li className="nav-item d-lg-none" style={{ borderBottom: 'none' }}>
                       {user ? (
@@ -95,12 +102,20 @@ const Header = () => {
                             <i className="fa-solid fa-circle-user me-2"></i>
                             {user.name}
                           </div>
-                          <Link className="nav-link w-100 m-0" to="/my-bookings" style={{ borderBottom: '1px solid rgb(226, 226, 226)' }}>
-                            <i className="fa-solid fa-calendar-check me-2"></i>My Bookings
-                          </Link>
-                          <Link className="nav-link w-100 m-0" to="/my-membership" style={{ borderBottom: '1px solid rgb(226, 226, 226)' }}>
-                            <i className="fa-solid fa-id-card me-2"></i>My Membership Plan
-                          </Link>
+                          {user && user.isAdmin === 1 ? (
+                            <Link className="nav-link w-100 m-0" to="/admin-dashboard" style={{ borderBottom: '1px solid rgb(226, 226, 226)', color: '#FF6B6B', fontWeight: 600 }}>
+                              <i className="fa-solid fa-gauge me-2"></i>Admin Dashboard
+                            </Link>
+                          ) : (
+                            <>
+                              <Link className="nav-link w-100 m-0" to="/my-bookings" style={{ borderBottom: '1px solid rgb(226, 226, 226)' }}>
+                                <i className="fa-solid fa-calendar-check me-2"></i>My Bookings
+                              </Link>
+                              <Link className="nav-link w-100 m-0" to="/my-membership" style={{ borderBottom: '1px solid rgb(226, 226, 226)' }}>
+                                <i className="fa-solid fa-id-card me-2"></i>My Membership Plan
+                              </Link>
+                            </>
+                          )}
                           <button 
                             className="nav-link w-100 border-0 bg-transparent text-danger m-0" 
                             style={{ fontWeight: 600, padding: '15px' }}
@@ -143,14 +158,23 @@ const Header = () => {
                       </div>
                     </div>
                     <div className="user-dropdown-divider"></div>
-                    <Link to="/my-bookings" className="user-dropdown-item" onClick={() => setDropdownOpen(false)}>
-                      <i className="fa-solid fa-calendar-check me-2"></i>
-                      My Bookings
-                    </Link>
-                    <Link to="/my-membership" className="user-dropdown-item" onClick={() => setDropdownOpen(false)}>
-                      <i className="fa-solid fa-id-card me-2"></i>
-                      My Membership Plan
-                    </Link>
+                    {user && user.isAdmin === 1 ? (
+                      <Link to="/admin-dashboard" className="user-dropdown-item" onClick={() => setDropdownOpen(false)} style={{ color: '#FF6B6B', fontWeight: 600 }}>
+                        <i className="fa-solid fa-gauge me-2"></i>
+                        Admin Dashboard
+                      </Link>
+                    ) : (
+                      <>
+                        <Link to="/my-bookings" className="user-dropdown-item" onClick={() => setDropdownOpen(false)}>
+                          <i className="fa-solid fa-calendar-check me-2"></i>
+                          My Bookings
+                        </Link>
+                        <Link to="/my-membership" className="user-dropdown-item" onClick={() => setDropdownOpen(false)}>
+                          <i className="fa-solid fa-id-card me-2"></i>
+                          My Membership Plan
+                        </Link>
+                      </>
+                    )}
                     <div className="user-dropdown-divider"></div>
                     <button className="user-dropdown-item logout" onClick={handleLogout}>
                       <i className="fa-solid fa-right-from-bracket me-2"></i>

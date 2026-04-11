@@ -7,9 +7,15 @@ const userDataSchema = new mongoose.Schema({
 
   password: { type: String, required: true },
 
+  phone: { type: String, default: "" },
+
+  city: { type: String, default: "" },
+
   isVerified: { type: Boolean, default: false },
 
   isActive: { type: Boolean, default: true },
+
+  isAdmin: { type: Number, default: 0 }, // 0 = regular user, 1 = admin
 
   isMember: { type: Number, default: 0 }, // 0 = non-member, 1 = member
 

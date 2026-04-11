@@ -11,4 +11,21 @@ const api = axios.create({
   }
 });
 
+// Add authorization interceptor
+api.interceptors.request.use(
+  (config) => {
+    // Get token from localStorage (stored as 'userToken' in Login.jsx)
+    const token = localStorage.getItem('userToken');
+    
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+      console.log('Token added to request');
+    } else {
+      console.warn('No userToken found in localStorage');
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
 export default api;

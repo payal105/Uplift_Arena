@@ -9,7 +9,9 @@ const userSchema = new mongoose.Schema({
 
   isVerified: { type: Boolean, default: false },
 
-  isActive: { type: Boolean, default: true }
+  isActive: { type: Boolean, default: true },
+
+  isAdmin: { type: Number, default: 0 } // 0 = regular user, 1 = admin
 
 }, { timestamps: true })
 
