@@ -12,4 +12,7 @@ router.get("/my", authenticate, formBookingController.getMyFormBookings);
 // Admin: get all
 router.get("/all", authenticate, formBookingController.getAllFormBookings);
 
+// Admin: get booking details for a specific slot
+router.get("/slot-details/:turfId", authenticate, formBookingController.getSlotBookingDetails);
+
 module.exports = router;

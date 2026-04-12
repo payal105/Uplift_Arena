@@ -33,6 +33,62 @@ const TURF_OPTIONS_BY_GAME = {
   TENNIS:     [{ value: 'tennis-court1', label: 'Tennis (Court 1)' }, { value: 'tennis-court2', label: 'Tennis (Court 2)' }],
 };
 
+// Booking Details Modal Component
+const BookingDetailsModal = ({ isOpen, isLoading, slotDetailsData, slot, onClose }) => {
+  if (!isOpen) return null;
+
+  return (
+    <>
+      <div className="modal-backdrop" onClick={onClose}></div>
+      <div className="booking-details-modal">
+        <div className="modal-header">
+          <h5 className="modal-title">Booking Details</h5>
+          <button 
+            type="button" 
+            className="btn-close" 
+            onClick={onClose}
+            aria-label="Close"
+          ></button>
+        </div>
+        <div className="modal-body">
+          {isLoading ? (
+            <div className="loading-container">
+              <div className="spinner-small"></div>
+              <p>Loading...</p>
+            </div>
+          ) : slotDetailsData ? (
+            <div className="booking-details-content">
+              <div className="detail-row">
+                <span className="detail-label">Booked by:</span>
+                <span className="detail-value">{slotDetailsData.customerName || 'N/A'}</span>
+              </div>
+              <div className="detail-row">
+                <span className="detail-label">Email id:</span>
+                <span className="detail-value">{slotDetailsData.email || 'N/A'}</span>
+              </div>
+              <div className="detail-row">
+                <span className="detail-label">Slot booked:</span>
+                <span className="detail-value">{slot?.label || 'N/A'}</span>
+              </div>
+            </div>
+          ) : (
+            <p className="no-details">No booking details found</p>
+          )}
+        </div>
+        <div className="modal-footer">
+          <button 
+            type="button" 
+            className="btn-close-modal" 
+            onClick={onClose}
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </>
+  );
+};
+
 const ViewBookings = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
@@ -40,6 +96,10 @@ const ViewBookings = () => {
   const [selectedSport, setSelectedSport] = useState('CRICKET');
   const [bookings, setBookings] = useState([]);
   const [bookingsLoading, setBookingsLoading] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalLoading, setModalLoading] = useState(false);
+  const [slotDetailsData, setSlotDetailsData] = useState(null);
+  const [selectedSlot, setSelectedSlot] = useState(null);
 
   useEffect(() => {
     const userInfo = localStorage.getItem('userInfo');
@@ -106,10 +166,6 @@ const ViewBookings = () => {
     setSelectedDate(date);
   };
 
-  const handleGoBack = () => {
-    navigate('/admin-dashboard');
-  };
-
   const getTurfsForSport = () => {
     return TURF_OPTIONS_BY_GAME[selectedSport] || [];
   };
@@ -131,22 +187,19 @@ const ViewBookings = () => {
     });
   };
 
+  const getBookingDetailsForSlot = (turfId, slotStartTime) => {
+    return bookings.find(booking => 
+      booking.turfId === turfId && booking.fromTime === slotStartTime
+    );
+  };
+
   const hasTurfBookedSlots = (turfId) => {
     return bookings.some(booking => booking.turfId === turfId);
   };
 
   return (
     <div className="view-bookings-page">
-      <div className="bookings-page-header">
-        <button 
-          className="btn-back" 
-          onClick={handleGoBack}
-          aria-label="Go back"
-        >
-          <i className="fa-solid fa-arrow-left"></i> Back
-        </button>
-        <h1>View Bookings</h1>
-      </div>
+      <div className="bookings-page-header"></div>
 
       <div className="container bookings-page-container">
         <div className="bookings-card">
@@ -206,23 +259,56 @@ const ViewBookings = () => {
                   const hasBookings = hasTurfBookedSlots(turf.value);
                   return (
                     <div key={turf.value} className={`turf-section mb-5 ${hasBookings ? 'has-bookings' : ''}`}>
-                      <h5 className="turf-title">
-                      <i className="fa-solid fa-map-location-dot me-2"></i>{turf.label}
-                    </h5>
-                    <div className="slots-timeline">
-                      {FIXED_SLOTS.map((slot, index) => {
-                        const booked = isSlotBooked(turf.value, slot.startTime);
-                        return (
-                          <div 
-                            key={index} 
-                            className={`time-slot ${booked ? 'booked-slot' : 'available-slot'}`}
-                          >
-                            <div className="slot-time">{slot.label}</div>
-                          </div>
-                        );
-                      })}
+                      <h5 className="mb-3">{turf.label}</h5>
+                      <div className="slots-timeline">
+                        {FIXED_SLOTS.map((slot, index) => {
+                          const booked = isSlotBooked(turf.value, slot.startTime);
+                          const bookingDetails = booked ? getBookingDetailsForSlot(turf.value, slot.startTime) : null;
+                          
+                          const handleSlotClick = async (e) => {
+                            if (booked) {
+                              e.stopPropagation();
+                              setModalOpen(true);
+                              setModalLoading(true);
+                              setSelectedSlot(slot);
+                              setSlotDetailsData(null);
+                              
+                              try {
+                                const response = await api.get(`/api/form-bookings/slot-details/${turf.value}`, {
+                                  params: {
+                                    date: selectedDate,
+                                    startTime: slot.startTime
+                                  }
+                                });
+                                setSlotDetailsData(response.data);
+                              } catch (error) {
+                                console.error('Error fetching slot details:', error);
+                                setSlotDetailsData(null);
+                              } finally {
+                                setModalLoading(false);
+                              }
+                            }
+                          };
+
+                          const handleModalClose = () => {
+                            setModalOpen(false);
+                            setSlotDetailsData(null);
+                            setSelectedSlot(null);
+                          };
+                          
+                          return (
+                            <div 
+                              key={index} 
+                              className={`time-slot ${booked ? 'booked-slot' : 'available-slot'}`}
+                              onClick={handleSlotClick}
+                              style={{ cursor: booked ? 'pointer' : 'default' }}
+                            >
+                              <div className="slot-time">{slot.label}</div>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
                   );
                 })
               ) : (
@@ -234,6 +320,18 @@ const ViewBookings = () => {
           )}
         </div>
       </div>
+
+      <BookingDetailsModal 
+        isOpen={modalOpen}
+        isLoading={modalLoading}
+        slotDetailsData={slotDetailsData}
+        slot={selectedSlot}
+        onClose={() => {
+          setModalOpen(false);
+          setSlotDetailsData(null);
+          setSelectedSlot(null);
+        }}
+      />
     </div>
   );
 };

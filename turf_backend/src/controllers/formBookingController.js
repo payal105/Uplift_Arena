@@ -178,3 +178,47 @@ exports.getAllFormBookings = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// Get booking details for a specific slot (Admin)
+exports.getSlotBookingDetails = async (req, res) => {
+  try {
+    const { turfId } = req.params;
+    const { date, startTime } = req.query;
+
+    if (!turfId || !date || !startTime) {
+      return res.status(400).json({ message: "turfId, date, and startTime are required" });
+    }
+
+    const booking = await FormBooking.findOne({
+      turfId,
+      bookingDate: date,
+      slots: { 
+        $elemMatch: { startTime }
+      },
+      status: { $ne: 'cancelled' }
+    })
+      .populate("user", "name email phone")
+      .lean();
+
+    if (!booking) {
+      return res.status(404).json({ message: "No booking found for this slot" });
+    }
+
+    // Find the specific slot
+    const slot = booking.slots.find(s => s.startTime === startTime);
+
+    res.json({
+      bookingId: booking._id,
+      customerName: booking.customerName,
+      email: booking.email,
+      phone: booking.phone || 'N/A',
+      totalCost: booking.totalAmount || 0,
+      fromTime: slot?.startTime || '',
+      toTime: slot?.endTime || '',
+      notes: booking.notes || '',
+      _id: booking._id
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

@@ -13,4 +13,7 @@ router.post("/reset-password", user_dataController.resetPassword);
 router.get("/profile", authenticate, user_dataController.getProfile);
 router.put("/profile", authenticate, user_dataController.updateProfile);
 
+// Admin routes - Get all users (non-admins)
+router.get("/", user_dataController.getAllUsers);
+
 module.exports = router;

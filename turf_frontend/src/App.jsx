@@ -21,6 +21,7 @@ import PaymentPolicy from './pages/PaymentPolicy';
 import UsagePolicy from './pages/UsagePolicy';
 import AdminDashboard from './pages/AdminDashboard';
 import ViewBookings from './pages/ViewBookings';
+import ViewUsers from './pages/ViewUsers';
 
 import PaymentReturn from './pages/PaymentReturn';
 import ForgotPassword from './pages/ForgotPassword';
@@ -74,6 +75,7 @@ function App() {
           <Route path="/usage-policy" element={<UsagePolicy />} />
           <Route path="/admin-dashboard" element={<AdminDashboard />} />
           <Route path="/view-bookings" element={<ViewBookings />} />
+          <Route path="/view-users" element={<ViewUsers />} />
           <Route path="/payment-return" element={<PaymentReturn />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />

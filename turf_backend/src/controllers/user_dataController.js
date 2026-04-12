@@ -189,3 +189,22 @@ exports.resetPassword = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// Get All Users (Admin only)
+exports.getAllUsers = async (req, res) => {
+  try {
+    // Fetch all users except admins, exclude password field
+    const users = await UserData.find({ isAdmin: { $ne: 1 } }).select("-password");
+    
+    if (!users) {
+      return res.status(404).json({ message: "No users found" });
+    }
+
+    res.json({
+      users: users,
+      count: users.length
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

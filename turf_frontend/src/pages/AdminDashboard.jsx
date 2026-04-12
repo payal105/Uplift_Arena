@@ -82,80 +82,38 @@ const AdminDashboard = () => {
             <div className="admin-features">
               <h3 className="mb-4">Management Tools</h3>
               <div className="row">
-                <div className="col-md-6 col-lg-4 mb-3">
+                <div className="col-md-6 col-lg-6 mb-3">
                   <div className="feature-card">
                     <div className="feature-icon">
-                      <i className="fa-solid fa-users"></i>
+                      <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor" style={{color: 'white'}}>
+                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                      </svg>
                     </div>
-                    <h5>Manage Users</h5>
-                    <p>View, edit, and manage user accounts</p>
-                    <button className="btn btn-primary btn-sm" disabled>
-                      <i className="fa-solid fa-arrow-right me-2"></i>Go
+                    <h5>View Users</h5>
+                    <p>View all registered user accounts</p>
+                    <button className="btn btn-primary btn-sm" onClick={() => navigate('/view-users')}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{marginRight: '8px', display: 'inline'}}>
+                        <path d="M5 12h14M12 5l7 7-7 7"/>
+                      </svg>
+                      Go
                     </button>
                   </div>
                 </div>
 
-                <div className="col-md-6 col-lg-4 mb-3">
+                <div className="col-md-6 col-lg-6 mb-3">
                   <div className="feature-card">
                     <div className="feature-icon">
-                      <i className="fa-solid fa-calendar"></i>
+                      <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor" style={{color: 'white'}}>
+                        <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11z"/>
+                      </svg>
                     </div>
                     <h5>View Bookings</h5>
                     <p>Track all booking reservations</p>
                     <button className="btn btn-primary btn-sm" onClick={() => navigate('/view-bookings')}>
-                      <i className="fa-solid fa-arrow-right me-2"></i>Go
-                    </button>
-                  </div>
-                </div>
-
-                <div className="col-md-6 col-lg-4 mb-3">
-                  <div className="feature-card">
-                    <div className="feature-icon">
-                      <i className="fa-solid fa-money-check-dollar"></i>
-                    </div>
-                    <h5>Revenue Reports</h5>
-                    <p>Analyze revenue and payments</p>
-                    <button className="btn btn-primary btn-sm" disabled>
-                      <i className="fa-solid fa-arrow-right me-2"></i>Go
-                    </button>
-                  </div>
-                </div>
-
-                <div className="col-md-6 col-lg-4 mb-3">
-                  <div className="feature-card">
-                    <div className="feature-icon">
-                      <i className="fa-solid fa-person-hiking"></i>
-                    </div>
-                    <h5>Manage Turfs</h5>
-                    <p>Configure turf properties and rates</p>
-                    <button className="btn btn-primary btn-sm" disabled>
-                      <i className="fa-solid fa-arrow-right me-2"></i>Go
-                    </button>
-                  </div>
-                </div>
-
-                <div className="col-md-6 col-lg-4 mb-3">
-                  <div className="feature-card">
-                    <div className="feature-icon">
-                      <i className="fa-solid fa-clock"></i>
-                    </div>
-                    <h5>Manage Slots</h5>
-                    <p>Set available time slots</p>
-                    <button className="btn btn-primary btn-sm" disabled>
-                      <i className="fa-solid fa-arrow-right me-2"></i>Go
-                    </button>
-                  </div>
-                </div>
-
-                <div className="col-md-6 col-lg-4 mb-3">
-                  <div className="feature-card">
-                    <div className="feature-icon">
-                      <i className="fa-solid fa-cog"></i>
-                    </div>
-                    <h5>System Settings</h5>
-                    <p>Configure system preferences</p>
-                    <button className="btn btn-primary btn-sm" disabled>
-                      <i className="fa-solid fa-arrow-right me-2"></i>Go
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{marginRight: '8px', display: 'inline'}}>
+                        <path d="M5 12h14M12 5l7 7-7 7"/>
+                      </svg>
+                      Go
                     </button>
                   </div>
                 </div>
