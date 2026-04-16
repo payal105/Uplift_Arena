@@ -4,25 +4,25 @@ const Membership = require('../models/Membership');
 const UserData = require('../models/UserData');
 const { sendBookingConfirmationEmail } = require('../utils/emailService');
 
-const PAYU_KEY  = process.env.PAYU_KEY;
+const PAYU_KEY = process.env.PAYU_KEY;
 const PAYU_SALT = process.env.PAYU_SALT;
 const PAYU_MODE = (process.env.PAYU_MODE || 'TEST').toUpperCase();
-const PAYU_URL  = PAYU_MODE === 'LIVE'
+const PAYU_URL = PAYU_MODE === 'LIVE'
   ? 'https://secure.payu.in/_payment'
   : 'https://test.payu.in/_payment';
 
-const BACKEND_URL  = (process.env.BACKEND_URL  || 'https://uplift-arena-backend.vercel.app').replace(/\/$/, '');
+const BACKEND_URL = (process.env.BACKEND_URL || 'https://uplift-arena-backend.vercel.app').replace(/\/$/, '');
 const FRONTEND_URL = (process.env.FRONTEND_URL || 'https://booking.upliftsportsarena.com').replace(/\/$/, '');
 
 const TURF_LABELS = {
-  'badminton-court1':   'Badminton (Court 1)',
-  'badminton-court4':   'Badminton (Court 4)',
-  'pickleball-court2':  'Pickleball (Court 2)',
-  'pickleball-court3':  'Pickleball (Court 3)',
-  'tennis-court1':      'Tennis (Court 1)',
-  'tennis-court2':      'Tennis (Court 2)',
-  'futsal-turf':        'Futsal Turf',
-  'big-turf':           'Big Turf',
+  'badminton-court1': 'Badminton (Court 1)',
+  'badminton-court4': 'Badminton (Court 4)',
+  'pickleball-court2': 'Pickleball (Court 2)',
+  'pickleball-court3': 'Pickleball (Court 3)',
+  'tennis-court1': 'Tennis (Court 1)',
+  'tennis-court2': 'Tennis (Court 2)',
+  'futsal-turf': 'Futsal Turf',
+  'big-turf': 'Big Turf',
 };
 
 const SPORT_RATES = {
@@ -31,10 +31,10 @@ const SPORT_RATES = {
 };
 
 const MEMBERSHIP_PRICES = {
-  'annual-individual-club':      30000,
-  'annual-family-club':          50000,
-  'annual-individual-activity':  18000,
-  'monthly-individual-activity':  3000,
+  'annual-individual-club': 30000,
+  'annual-family-club': 50000,
+  'annual-individual-activity': 18000,
+  'monthly-individual-activity': 3000,
 };
 
 // -----------------------------------------------------------
@@ -52,8 +52,8 @@ function generateHash({ txnid, amount, productinfo, firstname, email, udf1, udf2
 
 function verifyHash(body) {
   const { key, txnid, amount, productinfo, firstname, email,
-          udf1 = '', udf2 = '', udf3 = '', udf4 = '', udf5 = '',
-          status, hash } = body;
+    udf1 = '', udf2 = '', udf3 = '', udf4 = '', udf5 = '',
+    status, hash } = body;
   const str = [
     PAYU_SALT, status,
     '', '', '', '', '',             // additional_charges, net_amount_debit, unmappedstatus, bankcode, error_Message
@@ -103,7 +103,7 @@ exports.initiateBookingPayment = async (req, res) => {
     // Sort and compute derived fields
     const sortedSlots = slots.slice().sort((a, b) => a.startTime.localeCompare(b.startTime));
     const fromTime = sortedSlots[0].startTime;
-    const toTime   = sortedSlots[sortedSlots.length - 1].endTime;
+    const toTime = sortedSlots[sortedSlots.length - 1].endTime;
 
     const computeToDate = (date, from, to) => {
       if (to <= from) {
@@ -160,6 +160,13 @@ exports.initiateBookingPayment = async (req, res) => {
       }
     }
 
+    // Block specific slots on 18th April 2026
+    for (const slot of sortedSlots) {
+      if (bookingDate === '2026-04-18' && ['18:00', '19:00', '20:00', '21:00'].includes(slot.startTime)) {
+        return res.status(400).json({ message: "Slots between 6 PM and 10 PM on 18th April are unavailable." });
+      }
+    }
+
     // Slot conflict check
     for (const slot of sortedSlots) {
       const conflict = await FormBooking.findOne({
@@ -177,35 +184,35 @@ exports.initiateBookingPayment = async (req, res) => {
     }
 
     const customerName = req.user?.name || 'Guest';
-    const email        = req.user?.email || '';
-    const phone        = req.user?.phone || 'N/A';
+    const email = req.user?.email || '';
+    const phone = req.user?.phone || 'N/A';
 
     // Create pending booking
     const booking = await FormBooking.create({
-      user:          req.userId || null,
+      user: req.userId || null,
       customerName,
       phone,
       email,
-      sport:         sport || 'GENERAL',
+      sport: sport || 'GENERAL',
       turfId,
-      turfName:      TURF_LABELS[turfId] || turfId,
+      turfName: TURF_LABELS[turfId] || turfId,
       bookingDate,
       toDate,
       fromTime,
       toTime,
-      slots:         sortedSlots,
-      bringGuests:   !!bringGuests,
-      guestCount:    guests,
+      slots: sortedSlots,
+      bringGuests: !!bringGuests,
+      guestCount: guests,
       guestCharges,
       totalAmount,
-      status:        'pending_payment',
+      status: 'pending_payment',
       paymentStatus: 'PENDING',
     });
 
-    const txnid      = generateTxnId();
-    const amountStr  = totalAmount.toFixed(2);
+    const txnid = generateTxnId();
+    const amountStr = totalAmount.toFixed(2);
     const productinfo = `Turf Booking - ${TURF_LABELS[turfId] || turfId}`;
-    const firstname  = customerName.split(' ')[0] || 'User';
+    const firstname = customerName.split(' ')[0] || 'User';
 
     // Save txnid on the booking
     await FormBooking.findByIdAndUpdate(booking._id, { payuTxnId: txnid });
@@ -218,18 +225,18 @@ exports.initiateBookingPayment = async (req, res) => {
 
     res.json({
       payuParams: {
-        payuUrl:     PAYU_URL,
-        key:         PAYU_KEY,
+        payuUrl: PAYU_URL,
+        key: PAYU_KEY,
         txnid,
-        amount:      amountStr,
+        amount: amountStr,
         productinfo,
         firstname,
         email,
         phone,
-        udf1:        booking._id.toString(),
-        udf2:        'booking',
-        surl:        `${BACKEND_URL}/api/payments/payu/success`,
-        furl:        `${BACKEND_URL}/api/payments/payu/failure`,
+        udf1: booking._id.toString(),
+        udf2: 'booking',
+        surl: `${BACKEND_URL}/api/payments/payu/success`,
+        furl: `${BACKEND_URL}/api/payments/payu/failure`,
         hash,
       },
     });
@@ -285,26 +292,26 @@ exports.initiateMembershipPayment = async (req, res) => {
 
     // Create pending membership (isActive: 0 until payment succeeds)
     const membership = await Membership.create({
-      userId:         req.userId,
+      userId: req.userId,
       name,
       email,
       phone,
       membershipType,
       activityChoice: activityRequiredPlans.includes(membershipType) ? activityChoice : null,
-      message:        message || '',
+      message: message || '',
       startDate,
       endDate,
       basePrice,
       gstAmount,
       totalAmount,
-      isActive:       0,
-      paymentStatus:  'PENDING',
+      isActive: 0,
+      paymentStatus: 'PENDING',
     });
 
-    const txnid       = generateTxnId();
-    const amountStr   = totalAmount.toFixed(2);
+    const txnid = generateTxnId();
+    const amountStr = totalAmount.toFixed(2);
     const productinfo = `Membership - ${membershipType}`;
-    const firstname   = name.split(' ')[0] || 'User';
+    const firstname = name.split(' ')[0] || 'User';
 
     await Membership.findByIdAndUpdate(membership._id, { payuTxnId: txnid });
 
@@ -322,18 +329,18 @@ exports.initiateMembershipPayment = async (req, res) => {
         totalAmount,
       },
       payuParams: {
-        payuUrl:     PAYU_URL,
-        key:         PAYU_KEY,
+        payuUrl: PAYU_URL,
+        key: PAYU_KEY,
         txnid,
-        amount:      amountStr,
+        amount: amountStr,
         productinfo,
         firstname,
         email,
         phone,
-        udf1:        membership._id.toString(),
-        udf2:        'membership',
-        surl:        `${BACKEND_URL}/api/payments/payu/success`,
-        furl:        `${BACKEND_URL}/api/payments/payu/failure`,
+        udf1: membership._id.toString(),
+        udf2: 'membership',
+        surl: `${BACKEND_URL}/api/payments/payu/success`,
+        furl: `${BACKEND_URL}/api/payments/payu/failure`,
         hash,
       },
     });

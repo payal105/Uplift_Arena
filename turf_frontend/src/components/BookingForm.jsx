@@ -3,43 +3,43 @@ import { toast } from 'react-toastify';
 import api from '../api/axios';
 
 const FIXED_SLOTS = [
-  { label: '6:00 - 7:00 AM',   startTime: '06:00', endTime: '07:00' },
-  { label: '7:00 - 8:00 AM',   startTime: '07:00', endTime: '08:00' },
-  { label: '8:00 - 9:00 AM',   startTime: '08:00', endTime: '09:00' },
-  { label: '9:00 - 10:00 AM',  startTime: '09:00', endTime: '10:00' },
-  { label: '6:00 - 7:00 PM',   startTime: '18:00', endTime: '19:00' },
-  { label: '7:00 - 8:00 PM',   startTime: '19:00', endTime: '20:00' },
-  { label: '8:00 - 9:00 PM',   startTime: '20:00', endTime: '21:00' },
-  { label: '9:00 - 10:00 PM',  startTime: '21:00', endTime: '22:00' },
+  { label: '6:00 - 7:00 AM', startTime: '06:00', endTime: '07:00' },
+  { label: '7:00 - 8:00 AM', startTime: '07:00', endTime: '08:00' },
+  { label: '8:00 - 9:00 AM', startTime: '08:00', endTime: '09:00' },
+  { label: '9:00 - 10:00 AM', startTime: '09:00', endTime: '10:00' },
+  { label: '6:00 - 7:00 PM', startTime: '18:00', endTime: '19:00' },
+  { label: '7:00 - 8:00 PM', startTime: '19:00', endTime: '20:00' },
+  { label: '8:00 - 9:00 PM', startTime: '20:00', endTime: '21:00' },
+  { label: '9:00 - 10:00 PM', startTime: '21:00', endTime: '22:00' },
 ];
 
 const PRICING = {
-  TENNIS:     { rate: 1200, description: 'Hourly · max 4 pax' },
-  BADMINTON:  { rate: 1200, description: 'Hourly · max 4 pax' },
+  TENNIS: { rate: 1200, description: 'Hourly · max 4 pax' },
+  BADMINTON: { rate: 1200, description: 'Hourly · max 4 pax' },
   PICKLEBALL: { rate: 1200, description: 'Hourly · max 4 pax' },
-  FUTSAL:     { rate: 1200, description: 'Per hour · max 10 pax' },
-  CRICKET:    { rate: 1200, description: 'Per hour · max 10 pax' },
-  BIG_TURF:   { rate: 2000, description: 'Per hour · max 20 pax · min 2 hrs' },
+  FUTSAL: { rate: 1200, description: 'Per hour · max 10 pax' },
+  CRICKET: { rate: 1200, description: 'Per hour · max 10 pax' },
+  BIG_TURF: { rate: 2000, description: 'Per hour · max 20 pax · min 2 hrs' },
 };
 
 const STADIUM_SVG = (
   <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="3" strokeLinejoin="round">
     {/* Outer boundary */}
-    <rect x="4" y="8" width="56" height="48" rx="2"/>
+    <rect x="4" y="8" width="56" height="48" rx="2" />
     {/* Center line */}
-    <line x1="32" y1="8" x2="32" y2="56"/>
+    <line x1="32" y1="8" x2="32" y2="56" />
     {/* Center circle */}
-    <circle cx="32" cy="32" r="8"/>
+    <circle cx="32" cy="32" r="8" />
     {/* Center spot */}
-    <circle cx="32" cy="32" r="1.5" fill="currentColor" stroke="none"/>
+    <circle cx="32" cy="32" r="1.5" fill="currentColor" stroke="none" />
     {/* Left penalty box */}
-    <rect x="4" y="20" width="14" height="24"/>
+    <rect x="4" y="20" width="14" height="24" />
     {/* Right penalty box */}
-    <rect x="46" y="20" width="14" height="24"/>
+    <rect x="46" y="20" width="14" height="24" />
     {/* Left goal */}
-    <rect x="4" y="26" width="5" height="12"/>
+    <rect x="4" y="26" width="5" height="12" />
     {/* Right goal */}
-    <rect x="55" y="26" width="5" height="12"/>
+    <rect x="55" y="26" width="5" height="12" />
   </svg>
 );
 
@@ -96,8 +96,8 @@ const BookingForm = () => {
 
   // Maps membership activityChoice text → booking game ID
   const activityToGameId = {
-    'Badminton':  'BADMINTON',
-    'Tennis':     'TENNIS',
+    'Badminton': 'BADMINTON',
+    'Tennis': 'TENNIS',
     'Pickleball': 'PICKLEBALL',
   };
 
@@ -171,21 +171,21 @@ const BookingForm = () => {
   });
 
   const games = [
-    { id: 'CRICKET',    name: 'Cricket',    icon: '/assets/images/g2.png' },
-    { id: 'FUTSAL',     name: 'Futsal',     icon: '/assets/images/g1.png' },
-    { id: 'BIG_TURF',  name: 'Big Turf',   icon: null, svg: STADIUM_SVG },
-    { id: 'PICKLEBALL',name: 'Pickleball', icon: '/assets/images/g5.png' },
-    { id: 'BADMINTON', name: 'Badminton',  icon: '/assets/images/g6.png' },
-    { id: 'TENNIS',    name: 'Tennis',     icon: '/assets/images/g3.png' }
+    { id: 'CRICKET', name: 'Cricket', icon: '/assets/images/g2.png' },
+    { id: 'FUTSAL', name: 'Futsal', icon: '/assets/images/g1.png' },
+    { id: 'BIG_TURF', name: 'Big Turf', icon: null, svg: STADIUM_SVG },
+    { id: 'PICKLEBALL', name: 'Pickleball', icon: '/assets/images/g5.png' },
+    { id: 'BADMINTON', name: 'Badminton', icon: '/assets/images/g6.png' },
+    { id: 'TENNIS', name: 'Tennis', icon: '/assets/images/g3.png' }
   ];
 
   const turfOptionsByGame = {
-    CRICKET:    [{ value: 'futsal-turf', label: 'Futsal Turf' }],
-    FUTSAL:     [{ value: 'futsal-turf', label: 'Futsal Turf' }],
-    BIG_TURF:   [{ value: 'big-turf',   label: 'Big Turf' }],
+    CRICKET: [{ value: 'futsal-turf', label: 'Futsal Turf' }],
+    FUTSAL: [{ value: 'futsal-turf', label: 'Futsal Turf' }],
+    BIG_TURF: [{ value: 'big-turf', label: 'Big Turf' }],
     PICKLEBALL: [{ value: 'pickleball-court2', label: 'Pickleball (Court 2)' }, { value: 'pickleball-court3', label: 'Pickleball (Court 3)' }],
-    BADMINTON:  [{ value: 'badminton-court1', label: 'Badminton (Court 1)' }, { value: 'badminton-court4', label: 'Badminton (Court 4)' }],
-    TENNIS:     [{ value: 'tennis-court1', label: 'Tennis (Court 1)' }, { value: 'tennis-court2', label: 'Tennis (Court 2)' }],
+    BADMINTON: [{ value: 'badminton-court1', label: 'Badminton (Court 1)' }, { value: 'badminton-court4', label: 'Badminton (Court 4)' }],
+    TENNIS: [{ value: 'tennis-court1', label: 'Tennis (Court 1)' }, { value: 'tennis-court2', label: 'Tennis (Court 2)' }],
   };
 
   // Reset turf selection when game changes
@@ -200,20 +200,20 @@ const BookingForm = () => {
   const isSlotPassed = (slotStartTime) => {
     const today = getTodayDate();
     const selectedDate = formData.date;
-    
+
     // If selected date is in the past, disable all slots
     if (selectedDate < today) return true;
-    
+
     // If selected date is in the future, enable all slots
     if (selectedDate > today) return false;
-    
+
     // If selected date is today, check if slot time has passed
     // Get current time in HH:mm format
     const now = new Date();
     const currentHrs = String(now.getHours()).padStart(2, '0');
     const currentMins = String(now.getMinutes()).padStart(2, '0');
     const currentTime = `${currentHrs}:${currentMins}`;
-    
+
     // Compare: if slot start time is <= current time, it has passed
     return slotStartTime <= currentTime;
   };
@@ -265,7 +265,7 @@ const BookingForm = () => {
     };
     const sortedSlots = formData.selectedSlots.slice().sort();
     const firstSlot = FIXED_SLOTS.find(s => s.startTime === sortedSlots[0]);
-    const lastSlot  = FIXED_SLOTS.find(s => s.startTime === sortedSlots[sortedSlots.length - 1]);
+    const lastSlot = FIXED_SLOTS.find(s => s.startTime === sortedSlots[sortedSlots.length - 1]);
     const timeRange = firstSlot && lastSlot
       ? `${formatTime(firstSlot.startTime)} - ${formatTime(lastSlot.endTime)}`
       : '';
@@ -392,45 +392,45 @@ const BookingForm = () => {
                     title={isGameDisabled(game.id) ? 'Upgrade your membership to access' : ''}
                     style={{ display: 'block', cursor: isGameDisabled(game.id) ? 'not-allowed' : 'default' }}
                   >
-                  <button
-                    type="button"
-                    disabled={isGameDisabled(game.id)}
-                    onClick={() => {
-                      if (isGameDisabled(game.id)) return;
-                      setActiveGame(game.id);
-                      setTimeout(() => {
-                        if (formSectionRef.current) {
-                          const top = formSectionRef.current.getBoundingClientRect().top + window.scrollY - 90;
-                          window.scrollTo({ top, behavior: 'smooth' });
-                        }
-                      }, 50);
-                    }}
-                    style={{
-                      width: '100%',
-                      minHeight: '110px',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '10px',
-                      borderRadius: '8px',
-                      padding: '20px',
-                      background: activeGame === game.id ? '#08295E' : '#AADF6D',
-                      boxShadow: '4px 4px 0px 2px #08295E',
-                      border: '0',
-                      fontSize: '16px',
-                      fontWeight: '600',
-                      color: activeGame === game.id ? '#fff' : '#08295E',
-                      cursor: isGameDisabled(game.id) ? 'not-allowed' : 'pointer',
-                      opacity: isGameDisabled(game.id) ? 0.4 : 1,
-                    }}
-                  >
-                    {game.svg
-                      ? <span style={{ display: 'flex', color: activeGame === game.id ? '#fff' : '#08295E' }}>{game.svg}</span>
-                      : <img src={game.icon} alt={game.name} style={{ filter: activeGame === game.id ? 'brightness(0) invert(1)' : 'none' }} />
-                    }
-                    {game.name}
-                  </button>
+                    <button
+                      type="button"
+                      disabled={isGameDisabled(game.id)}
+                      onClick={() => {
+                        if (isGameDisabled(game.id)) return;
+                        setActiveGame(game.id);
+                        setTimeout(() => {
+                          if (formSectionRef.current) {
+                            const top = formSectionRef.current.getBoundingClientRect().top + window.scrollY - 90;
+                            window.scrollTo({ top, behavior: 'smooth' });
+                          }
+                        }, 50);
+                      }}
+                      style={{
+                        width: '100%',
+                        minHeight: '110px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '10px',
+                        borderRadius: '8px',
+                        padding: '20px',
+                        background: activeGame === game.id ? '#08295E' : '#AADF6D',
+                        boxShadow: '4px 4px 0px 2px #08295E',
+                        border: '0',
+                        fontSize: '16px',
+                        fontWeight: '600',
+                        color: activeGame === game.id ? '#fff' : '#08295E',
+                        cursor: isGameDisabled(game.id) ? 'not-allowed' : 'pointer',
+                        opacity: isGameDisabled(game.id) ? 0.4 : 1,
+                      }}
+                    >
+                      {game.svg
+                        ? <span style={{ display: 'flex', color: activeGame === game.id ? '#fff' : '#08295E' }}>{game.svg}</span>
+                        : <img src={game.icon} alt={game.name} style={{ filter: activeGame === game.id ? 'brightness(0) invert(1)' : 'none' }} />
+                      }
+                      {game.name}
+                    </button>
                   </span>
                 </div>
               ))}
@@ -483,10 +483,12 @@ const BookingForm = () => {
                           {FIXED_SLOTS.map((slot) => {
                             const isSelected = formData.selectedSlots.includes(slot.startTime);
                             const slotPassed = isSlotPassed(slot.startTime);
+                            const blockedSpecific = formData.date === '2026-04-18' && ['18:00', '19:00', '20:00', '21:00'].includes(slot.startTime);
                             const limitReached = !isSelected && formData.selectedSlots.length >= maxSlots;
-                            const isDisabled = limitReached || slotPassed;
+                            const isDisabled = limitReached || slotPassed || blockedSpecific;
                             const today = getTodayDate();
                             const getDisabledMessage = () => {
+                              if (blockedSpecific) return 'Arena is closed for a specific event';
                               if (slotPassed && formData.date === today) return 'This time slot has already passed';
                               if (limitReached) return formData.turfId === 'big-turf' ? 'Maximum 2 hours allowed per day' : 'Maximum 1 hour allowed per day';
                               return '';
@@ -497,38 +499,38 @@ const BookingForm = () => {
                                 title={getDisabledMessage()}
                                 style={{ display: 'inline-block', cursor: isDisabled ? 'not-allowed' : 'default' }}
                               >
-                              <button
-                                type="button"
-                                className="btn btn-sm"
-                                disabled={isDisabled}
-                                style={{
-                                  borderRadius: '20px',
-                                  whiteSpace: 'nowrap',
-                                  fontSize: '0.78rem',
-                                  padding: '4px 12px',
-                                  flexShrink: 0,
-                                  fontWeight: isSelected ? '600' : '400',
-                                  backgroundColor: isSelected ? '#A6CE39' : 'transparent',
-                                  color: '#08295E',
-                                  border: '1.5px solid #08295E',
-                                  outline: 'none',
-                                  boxShadow: 'none',
-                                  opacity: isDisabled ? 0.4 : 1,
-                                  pointerEvents: isDisabled ? 'none' : 'auto'
-                                }}
-                                onClick={() => {
-                                  const already = formData.selectedSlots.includes(slot.startTime);
-                                  if (!already && formData.selectedSlots.length >= maxSlots) return;
-                                  setFormData({
-                                    ...formData,
-                                    selectedSlots: already
-                                      ? formData.selectedSlots.filter(s => s !== slot.startTime)
-                                      : [...formData.selectedSlots, slot.startTime]
-                                  });
-                                }}
-                              >
-                                {slot.label}
-                              </button>
+                                <button
+                                  type="button"
+                                  className="btn btn-sm"
+                                  disabled={isDisabled}
+                                  style={{
+                                    borderRadius: '20px',
+                                    whiteSpace: 'nowrap',
+                                    fontSize: '0.78rem',
+                                    padding: '4px 12px',
+                                    flexShrink: 0,
+                                    fontWeight: isSelected ? '600' : '400',
+                                    backgroundColor: isSelected ? '#A6CE39' : 'transparent',
+                                    color: '#08295E',
+                                    border: '1.5px solid #08295E',
+                                    outline: 'none',
+                                    boxShadow: 'none',
+                                    opacity: isDisabled ? 0.4 : 1,
+                                    pointerEvents: isDisabled ? 'none' : 'auto'
+                                  }}
+                                  onClick={() => {
+                                    const already = formData.selectedSlots.includes(slot.startTime);
+                                    if (!already && formData.selectedSlots.length >= maxSlots) return;
+                                    setFormData({
+                                      ...formData,
+                                      selectedSlots: already
+                                        ? formData.selectedSlots.filter(s => s !== slot.startTime)
+                                        : [...formData.selectedSlots, slot.startTime]
+                                    });
+                                  }}
+                                >
+                                  {slot.label}
+                                </button>
                               </span>
                             );
                           })}

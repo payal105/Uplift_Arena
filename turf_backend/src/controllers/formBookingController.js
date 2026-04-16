@@ -60,8 +60,8 @@ exports.createFormBooking = async (req, res) => {
     // Sort slots by startTime
     const sortedSlots = slots.slice().sort((a, b) => a.startTime.localeCompare(b.startTime));
     const fromTime = sortedSlots[0].startTime;
-    const toTime   = sortedSlots[sortedSlots.length - 1].endTime;
-    const toDate   = computeToDate(bookingDate, fromTime, toTime);
+    const toTime = sortedSlots[sortedSlots.length - 1].endTime;
+    const toDate = computeToDate(bookingDate, fromTime, toTime);
 
     // Big Turf: total duration across all slots must be >= 2 hours
     if (turfId === 'big-turf') {
@@ -104,6 +104,13 @@ exports.createFormBooking = async (req, res) => {
         return res.status(400).json({
           message: `You can only book ${label} for a maximum of ${maxHrs} hour${maxHrs > 1 ? 's' : ''} per day.`
         });
+      }
+    }
+
+    // Block specific slots on 18th April 2026
+    for (const slot of sortedSlots) {
+      if (bookingDate === '2026-04-18' && ['18:00', '19:00', '20:00', '21:00'].includes(slot.startTime)) {
+        return res.status(400).json({ message: "Slots between 6 PM and 10 PM on 18th April are unavailable." });
       }
     }
 
@@ -192,7 +199,7 @@ exports.getSlotBookingDetails = async (req, res) => {
     const booking = await FormBooking.findOne({
       turfId,
       bookingDate: date,
-      slots: { 
+      slots: {
         $elemMatch: { startTime }
       },
       status: { $ne: 'cancelled' }
