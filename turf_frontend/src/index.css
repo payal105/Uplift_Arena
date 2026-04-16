@@ -426,17 +426,33 @@
   font-weight: 600;
   border-radius: 8px;
   letter-spacing: 0.3px;
-  background-color: #08295E;
-  border-color: #08295E;
-  color: #ffffff;
+  background-color: #AADF6D;
+  border-color: #AADF6D;
+  color: #08295E;
 }
 
 .auth-form .btn-primary:hover,
 .auth-form .btn-primary:focus,
 .auth-form .btn-primary:active {
-  background-color: #061e46;
-  border-color: #061e46;
-  color: #ffffff;
+  background-color: #08295E;
+  border-color: #08295E;
+  color: #AADF6D;
+}
+
+/* Global site button overrides */
+.btn-secondary {
+  background-color: #AADF6D !important;
+  border-color: #AADF6D !important;
+  color: #08295E !important;
+  font-weight: 600;
+}
+
+.btn-secondary:hover,
+.btn-secondary:focus,
+.btn-secondary:active {
+  background-color: #08295E !important;
+  border-color: #08295E !important;
+  color: #AADF6D !important;
 }
 
 .switch-text {

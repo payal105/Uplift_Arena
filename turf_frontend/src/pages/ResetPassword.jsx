@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import api from '../api/axios';
 
 const ResetPassword = () => {
@@ -12,35 +13,28 @@ const ResetPassword = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
-  const [messageType, setMessageType] = useState(''); // 'success', 'error', or 'info'
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setMessage('');
 
     // Validation
     if (!password || !confirmPassword) {
-      setMessageType('error');
-      setMessage('Both password fields are required');
+      toast.error('Both password fields are required');
       return;
     }
 
     if (password.length < 6) {
-      setMessageType('error');
-      setMessage('Password must be at least 6 characters long');
+      toast.error('Password must be at least 6 characters long');
       return;
     }
 
     if (password !== confirmPassword) {
-      setMessageType('error');
-      setMessage('Passwords do not match');
+      toast.error('Passwords do not match');
       return;
     }
 
     if (!token) {
-      setMessageType('error');
-      setMessage('Invalid reset link. Please request a new one.');
+      toast.error('Invalid reset link. Please request a new one.');
       return;
     }
 
@@ -52,8 +46,7 @@ const ResetPassword = () => {
         password
       });
 
-      setMessageType('success');
-      setMessage(response.data.message || 'Password reset successfully! Redirecting to login...');
+      toast.success(response.data.message || 'Password reset successfully! Redirecting to login...');
       setPassword('');
       setConfirmPassword('');
 
@@ -62,12 +55,15 @@ const ResetPassword = () => {
         navigate('/login');
       }, 2000);
     } catch (err) {
-      setMessageType('error');
-      setMessage(err.response?.data?.message || 'Failed to reset password. Please try again.');
+      toast.error(err.response?.data?.message || 'Failed to reset password. Please try again.');
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (!token) toast.error('Invalid reset link. Please request a new one.');
+  }, [token]);
 
   if (!token) {
     return (
@@ -88,19 +84,12 @@ const ResetPassword = () => {
               <div className="col-lg-5 col-md-7">
                 <div className="auth-card">
                   <div style={{ padding: '40px', textAlign: 'center' }}>
-                    <div
-                      className="alert alert-danger"
-                      style={{ padding: '16px', marginBottom: '20px' }}
-                    >
-                      <i className="fa-solid fa-exclamation-circle me-2"></i>
-                      Invalid reset link. Please
-                      <Link
-                        to="/forgot-password"
-                        style={{ marginLeft: '4px', fontWeight: '600' }}
-                      >
+                    <p style={{ color: '#555', marginBottom: '16px' }}>
+                      Invalid reset link. Please{' '}
+                      <Link to="/forgot-password" style={{ color: '#08295E', fontWeight: '600' }}>
                         request a new one
                       </Link>
-                    </div>
+                    </p>
                   </div>
                 </div>
               </div>
@@ -138,21 +127,6 @@ const ResetPassword = () => {
                     Enter a strong password to secure your account
                   </p>
 
-                  {message && (
-                    <div
-                      className={`alert ${
-                        messageType === 'success'
-                          ? 'alert-success'
-                          : messageType === 'error'
-                          ? 'alert-danger'
-                          : 'alert-info'
-                      }`}
-                      style={{ marginBottom: '20px', padding: '12px 16px' }}
-                    >
-                      {message}
-                    </div>
-                  )}
-
                   <form onSubmit={handleSubmit} noValidate>
                     <div className="mb-3">
                       <label htmlFor="password" className="form-label">
@@ -166,10 +140,7 @@ const ResetPassword = () => {
                           name="password"
                           placeholder="Enter new password (min 6 characters)"
                           value={password}
-                          onChange={(e) => {
-                            setPassword(e.target.value);
-                            setMessage('');
-                          }}
+                          onChange={(e) => setPassword(e.target.value)}
                           required
                           disabled={loading}
                         />
@@ -197,10 +168,7 @@ const ResetPassword = () => {
                           name="confirmPassword"
                           placeholder="Confirm your password"
                           value={confirmPassword}
-                          onChange={(e) => {
-                            setConfirmPassword(e.target.value);
-                            setMessage('');
-                          }}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
                           required
                           disabled={loading}
                         />

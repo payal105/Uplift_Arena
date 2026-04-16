@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import api from '../api/axios';
 
 const Login = () => {
@@ -11,7 +12,6 @@ const Login = () => {
 
   // --- Login State ---
   const [loginData, setLoginData] = useState({ email: '', password: '' });
-  const [loginError, setLoginError] = useState('');
   const [loginLoading, setLoginLoading] = useState(false);
   const [showLoginPassword, setShowLoginPassword] = useState(false);
 
@@ -22,22 +22,23 @@ const Login = () => {
     password: '',
     confirmPassword: '',
   });
-  const [signupError, setSignupError] = useState('');
-  const [signupSuccess, setSignupSuccess] = useState('');
   const [signupLoading, setSignupLoading] = useState(false);
   const [showSignupPassword, setShowSignupPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  // Show redirect message as toast on mount
+  useEffect(() => {
+    if (redirectMessage) toast.info(redirectMessage);
+  }, []);
+
   // ─── Login Handlers ───────────────────────────────────────────────────────
   const handleLoginChange = (e) => {
     setLoginData({ ...loginData, [e.target.name]: e.target.value });
-    setLoginError('');
   };
 
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     setLoginLoading(true);
-    setLoginError('');
     try {
       const res = await api.post('/api/user_data/login', {
         email: loginData.email,
@@ -48,9 +49,7 @@ const Login = () => {
       window.dispatchEvent(new Event('userAuthChanged'));
       navigate(redirectFrom);
     } catch (err) {
-      setLoginError(
-        err.response?.data?.message || 'Login failed. Please try again.'
-      );
+      toast.error(err.response?.data?.message || 'Login failed. Please try again.');
     } finally {
       setLoginLoading(false);
     }
@@ -59,8 +58,6 @@ const Login = () => {
   // ─── Signup Handlers ──────────────────────────────────────────────────────
   const handleSignupChange = (e) => {
     setSignupData({ ...signupData, [e.target.name]: e.target.value });
-    setSignupError('');
-    setSignupSuccess('');
   };
 
   const validateSignup = () => {
@@ -75,24 +72,20 @@ const Login = () => {
   const handleSignupSubmit = async (e) => {
     e.preventDefault();
     const error = validateSignup();
-    if (error) { setSignupError(error); return; }
+    if (error) { toast.error(error); return; }
 
     setSignupLoading(true);
-    setSignupError('');
-    setSignupSuccess('');
     try {
       await api.post('/api/user_data/register', {
         name: signupData.fullName,
         email: signupData.email,
         password: signupData.password,
       });
-      setSignupSuccess('Account created successfully! Please log in.');
+      toast.success('Account created successfully! Please log in.');
       setSignupData({ fullName: '', email: '', password: '', confirmPassword: '' });
       setTimeout(() => setActiveTab('login'), 1500);
     } catch (err) {
-      setSignupError(
-        err.response?.data?.message || 'Registration failed. Please try again.'
-      );
+      toast.error(err.response?.data?.message || 'Registration failed. Please try again.');
     } finally {
       setSignupLoading(false);
     }
@@ -122,14 +115,14 @@ const Login = () => {
                 <div className="auth-tabs">
                   <button
                     className={`auth-tab-btn${activeTab === 'login' ? ' active' : ''}`}
-                    onClick={() => { setActiveTab('login'); setLoginError(''); }}
+                    onClick={() => setActiveTab('login')}
                     type="button"
                   >
                     Login
                   </button>
                   <button
                     className={`auth-tab-btn${activeTab === 'signup' ? ' active' : ''}`}
-                    onClick={() => { setActiveTab('signup'); setSignupError(''); setSignupSuccess(''); }}
+                    onClick={() => setActiveTab('signup')}
                     type="button"
                   >
                     Sign Up
@@ -141,16 +134,6 @@ const Login = () => {
                   <form className="auth-form" onSubmit={handleLoginSubmit} noValidate>
                     <h4 className="form-heading">Welcome Back</h4>
                     <p className="form-subtext">Login to your account to continue</p>
-
-                    {redirectMessage && (
-                      <div className="alert alert-warning py-2">
-                        <i className="fas fa-exclamation-triangle me-2"></i>{redirectMessage}
-                      </div>
-                    )}
-
-                    {loginError && (
-                      <div className="alert alert-danger py-2">{loginError}</div>
-                    )}
 
                     <div className="mb-3">
                       <label htmlFor="loginEmail" className="form-label">
@@ -241,13 +224,6 @@ const Login = () => {
                   <form className="auth-form" onSubmit={handleSignupSubmit} noValidate>
                     <h4 className="form-heading">Create Account</h4>
                     <p className="form-subtext">Fill in the details to get started</p>
-
-                    {signupError && (
-                      <div className="alert alert-danger py-2">{signupError}</div>
-                    )}
-                    {signupSuccess && (
-                      <div className="alert alert-success py-2">{signupSuccess}</div>
-                    )}
 
                     <div className="mb-3">
                       <label htmlFor="fullName" className="form-label">

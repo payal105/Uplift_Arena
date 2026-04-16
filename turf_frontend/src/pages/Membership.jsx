@@ -173,7 +173,6 @@ const Membership = () => {
     activityChoice: '',
     message: '',
   });
-  const [submitError, setSubmitError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   const membershipPlans = [
@@ -200,28 +199,27 @@ const Membership = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSubmitError('');
 
     // Manual validation
     if (!formData.name.trim()) {
-      setSubmitError('Full name is required.');
+      toast.error('Full name is required.');
       return;
     }
     if (!formData.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      setSubmitError('A valid email address is required.');
+      toast.error('A valid email address is required.');
       return;
     }
     if (!formData.phone.trim() || !/^[0-9]{10}$/.test(formData.phone.trim())) {
-      setSubmitError('A valid 10-digit phone number is required.');
+      toast.error('A valid 10-digit phone number is required.');
       return;
     }
     if (!formData.membershipType) {
-      setSubmitError('Please select a membership type.');
+      toast.error('Please select a membership type.');
       return;
     }
     const activityRequiredPlans = ['annual-individual-activity', 'monthly-individual-activity'];
     if (activityRequiredPlans.includes(formData.membershipType) && !formData.activityChoice) {
-      setSubmitError('Please choose an activity for your membership.');
+      toast.error('Please choose an activity for your membership.');
       return;
     }
 
@@ -229,7 +227,7 @@ const Membership = () => {
     try {
       const token = localStorage.getItem('userToken');
       if (!token || token === 'null' || token === 'undefined') {
-        setSubmitError('You must be logged in to purchase a membership.');
+        toast.error('You must be logged in to purchase a membership.');
         setSubmitting(false);
         return;
       }
@@ -263,7 +261,7 @@ const Membership = () => {
         navigate('/login', { state: { from: '/membership', message: msg || 'Your session has expired. Please log in again.' } });
         return;
       }
-      setSubmitError(msg || 'Failed to initiate payment. Please try again.');
+      toast.error(msg || 'Failed to initiate payment. Please try again.');
       setSubmitting(false);
     }
   };
@@ -787,15 +785,6 @@ const Membership = () => {
                           placeholder="Any specific requirements or questions about membership..."
                         ></textarea>
                       </div>
-
-                      {/* Error message */}
-                      {submitError && (
-                        <div className="col-12">
-                          <div className="alert alert-danger py-2 mb-0" role="alert">
-                            <i className="fas fa-exclamation-circle me-2"></i>{submitError}
-                          </div>
-                        </div>
-                      )}
 
                       {/* Submit */}
                       <div className="col-12 text-center mt-2">

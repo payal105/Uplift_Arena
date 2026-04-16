@@ -1,23 +1,20 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import api from '../api/axios';
 
 const ForgotPassword = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
-  const [messageType, setMessageType] = useState(''); // 'success' or 'error'
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setMessage('');
 
     try {
       const response = await api.post('/api/user_data/forgot-password', { email });
-      setMessageType('success');
-      setMessage(response.data.message || 'If an account exists with this email, you will receive a password reset link');
+      toast.success(response.data.message || 'If an account exists with this email, you will receive a password reset link');
       setEmail('');
       
       // Redirect to login after 3 seconds
@@ -25,8 +22,7 @@ const ForgotPassword = () => {
         navigate('/login');
       }, 3000);
     } catch (err) {
-      setMessageType('error');
-      setMessage(err.response?.data?.message || 'Failed to process request. Please try again.');
+      toast.error(err.response?.data?.message || 'Failed to process request. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -59,15 +55,6 @@ const ForgotPassword = () => {
                     Enter your email address and we'll send you a link to reset your password
                   </p>
 
-                  {message && (
-                    <div
-                      className={`alert ${messageType === 'success' ? 'alert-success' : 'alert-danger'}`}
-                      style={{ marginBottom: '20px', padding: '12px 16px' }}
-                    >
-                      {message}
-                    </div>
-                  )}
-
                   <form onSubmit={handleSubmit} noValidate>
                     <div className="mb-4">
                       <label htmlFor="email" className="form-label">
@@ -82,7 +69,6 @@ const ForgotPassword = () => {
                         value={email}
                         onChange={(e) => {
                           setEmail(e.target.value);
-                          setMessage('');
                         }}
                         required
                         autoComplete="email"
