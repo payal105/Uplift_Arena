@@ -155,13 +155,17 @@ const BookingForm = () => {
     }
   }, [memberInfo]);
 
-  // Returns true if game should be disabled based on membership
-  const isGameDisabled = (gameId) => {
-    if (memberInfo.isMember !== 1) return false;
-    if (!memberInfo.activityChoice) return false; // all-activities plan
-    const allowed = activityToGameId[memberInfo.activityChoice];
-    return gameId !== allowed;
-  };
+  // All games are accessible to everyone; membership only controls free vs. paid access.
+  const isGameDisabled = (_gameId) => false;
+
+  // Returns true if the current game is covered for free by the user's membership
+  const isMemberSportFree = (
+    memberInfo.isMember === 1 &&
+    (
+      !memberInfo.activityChoice || // all-activities club plan → everything free
+      activityToGameId[memberInfo.activityChoice] === activeGame // specific sport matches
+    )
+  );
   const [formData, setFormData] = useState({
     date: getTodayDate(),
     turfId: '',
@@ -270,8 +274,8 @@ const BookingForm = () => {
       ? `${formatTime(firstSlot.startTime)} - ${formatTime(lastSlot.endTime)}`
       : '';
 
-    // Non-member: show payment summary modal
-    if (memberInfo.isMember === 0) {
+    // Non-member, or member booking a sport not covered by their plan: show payment modal
+    if (!isMemberSportFree) {
       const pricing = PRICING[activeGame] || { rate: 1200, description: 'per hour' };
       const hours = formData.selectedSlots.length;
       const courtTotal = pricing.rate * hours;
@@ -386,17 +390,22 @@ const BookingForm = () => {
           <div className="nav-area">
             <h3>Choose Your Game</h3>
             <div className="row g-3">
-              {games.map((game) => (
+              {games.map((game) => {
+                const isFreeForMember =
+                  memberInfo.isMember === 1 &&
+                  (
+                    !memberInfo.activityChoice ||
+                    activityToGameId[memberInfo.activityChoice] === game.id
+                  );
+                return (
                 <div className="col-4" key={game.id}>
                   <span
-                    title={isGameDisabled(game.id) ? 'Upgrade your membership to access' : ''}
-                    style={{ display: 'block', cursor: isGameDisabled(game.id) ? 'not-allowed' : 'default' }}
+                    title=''
+                    style={{ display: 'block', cursor: 'default' }}
                   >
                     <button
                       type="button"
-                      disabled={isGameDisabled(game.id)}
                       onClick={() => {
-                        if (isGameDisabled(game.id)) return;
                         setActiveGame(game.id);
                         setTimeout(() => {
                           if (formSectionRef.current) {
@@ -421,8 +430,8 @@ const BookingForm = () => {
                         fontSize: '16px',
                         fontWeight: '600',
                         color: activeGame === game.id ? '#fff' : '#08295E',
-                        cursor: isGameDisabled(game.id) ? 'not-allowed' : 'pointer',
-                        opacity: isGameDisabled(game.id) ? 0.4 : 1,
+                        cursor: 'pointer',
+                        opacity: 1,
                       }}
                     >
                       {game.svg
@@ -433,7 +442,8 @@ const BookingForm = () => {
                     </button>
                   </span>
                 </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 

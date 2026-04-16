@@ -1,5 +1,14 @@
 const FormBooking = require("../models/FormBooking");
+const Membership = require("../models/Membership");
+const UserData = require("../models/UserData");
 const { sendBookingConfirmationEmail } = require("../utils/emailService");
+
+// Maps membership activityChoice → booking sport key
+const ACTIVITY_TO_SPORT = {
+  'Badminton': 'BADMINTON',
+  'Tennis': 'TENNIS',
+  'Pickleball': 'PICKLEBALL',
+};
 
 const TURF_LABELS = {
   'badminton-1': 'Badminton 1',
@@ -40,6 +49,21 @@ exports.createFormBooking = async (req, res) => {
 
     if (slots.some(s => !s.startTime || !s.endTime)) {
       return res.status(400).json({ message: "Each slot must have startTime and endTime" });
+    }
+
+    // Verify the user is an active member and the sport matches their membership
+    const userData = await UserData.findById(req.userId).select('isMember');
+    if (!userData || userData.isMember !== 1) {
+      return res.status(403).json({ message: "Free bookings are only available to active members." });
+    }
+    const activeMembership = await Membership.findOne({ userId: req.userId, isActive: 1 });
+    if (activeMembership && activeMembership.activityChoice) {
+      const allowedSport = ACTIVITY_TO_SPORT[activeMembership.activityChoice];
+      if (allowedSport && (sport || 'GENERAL').toUpperCase() !== allowedSport) {
+        return res.status(403).json({
+          message: `Your membership only covers ${activeMembership.activityChoice}. Please use the standard booking flow to pay for other sports.`
+        });
+      }
     }
 
     const computeToDate = (date, from, to) => {
