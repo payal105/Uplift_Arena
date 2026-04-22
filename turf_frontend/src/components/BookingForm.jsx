@@ -493,7 +493,10 @@ const BookingForm = () => {
                           {FIXED_SLOTS.map((slot) => {
                             const isSelected = formData.selectedSlots.includes(slot.startTime);
                             const slotPassed = isSlotPassed(slot.startTime);
-                            const blockedSpecific = formData.date === '2026-04-18' && ['18:00', '19:00', '20:00', '21:00'].includes(slot.startTime);
+                            const blockedSpecific = 
+                              (formData.date === '2026-04-18' && ['18:00', '19:00', '20:00', '21:00'].includes(slot.startTime)) ||
+                              (formData.date === '2026-04-22' && ['19:00', '20:00', '21:00'].includes(slot.startTime)) ||
+                              (formData.date === '2026-04-23');
                             const limitReached = !isSelected && formData.selectedSlots.length >= maxSlots;
                             const isDisabled = limitReached || slotPassed || blockedSpecific;
                             const today = getTodayDate();
