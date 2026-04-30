@@ -19,8 +19,19 @@ const PaymentReturn = () => {
   const isMembership = params.type === 'membership';
 
   return (
-    <section className="section-padding" style={{ minHeight: '60vh' }}>
-      <div className="container">
+    <section
+      className="section-padding"
+      style={{
+        minHeight: '100vh',
+        background: 'url(/assets/images/banner.jpg) center center / cover no-repeat',
+        position: 'relative',
+        display: 'flex',
+        alignItems: 'center',
+      }}
+    >
+      {/* Dark overlay */}
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(8,41,94,0.65)' }} />
+      <div className="container" style={{ position: 'relative', zIndex: 1 }}>
         <div className="row justify-content-center">
           <div className="col-md-8 col-lg-6">
             <div

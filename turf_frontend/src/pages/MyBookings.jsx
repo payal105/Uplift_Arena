@@ -26,9 +26,10 @@ const SPORT_LABELS = {
 };
 
 const STATUS_STYLES = {
-  confirmed:  { bg: '#e8f5e9', color: '#2e7d32', label: 'Confirmed' },
-  cancelled:  { bg: '#ffebee', color: '#c62828', label: 'Cancelled' },
-  completed:  { bg: '#e3f2fd', color: '#1565c0', label: 'Completed' },
+  confirmed:        { bg: '#e8f5e9', color: '#2e7d32', label: 'Confirmed' },
+  cancelled:        { bg: '#ffebee', color: '#c62828', label: 'Cancelled' },
+  completed:        { bg: '#e3f2fd', color: '#1565c0', label: 'Completed' },
+  pending_payment:  { bg: '#fff8e1', color: '#e65100', label: 'Payment Pending' },
 };
 
 const MyBookings = () => {
@@ -46,7 +47,7 @@ const MyBookings = () => {
     api.get('/api/form-bookings/my', {
       headers: { Authorization: `Bearer ${token}` }
     })
-      .then((res) => setBookings(res.data.bookings || []))
+      .then((res) => setBookings((res.data.bookings || []).filter(b => b.status === 'confirmed' && b.paymentStatus === 'SUCCESS')))
       .catch((err) => setError(err.response?.data?.message || 'Failed to load bookings.'))
       .finally(() => setLoading(false));
   }, [navigate]);
@@ -91,7 +92,7 @@ const MyBookings = () => {
           {!loading && !error && bookings.length > 0 && (
             <div className="row g-4">
               {bookings.map((b) => {
-                const status = STATUS_STYLES[b.status] || STATUS_STYLES.confirmed;
+                const status = STATUS_STYLES[b.status] || { bg: '#f5f5f5', color: '#616161', label: b.status || 'Unknown' };
                 const sortedSlots = (b.slots || []).slice().sort((a, b) => a.startTime.localeCompare(b.startTime));
                 const timeRange = sortedSlots.length > 0
                   ? `${formatTime(sortedSlots[0].startTime)} – ${formatTime(sortedSlots[sortedSlots.length - 1].endTime)}`

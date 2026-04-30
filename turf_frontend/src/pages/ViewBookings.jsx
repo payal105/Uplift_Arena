@@ -259,7 +259,7 @@ const ViewBookings = () => {
                   const hasBookings = hasTurfBookedSlots(turf.value);
                   return (
                     <div key={turf.value} className={`turf-section mb-5 ${hasBookings ? 'has-bookings' : ''}`}>
-                      <h5 className="mb-3">{turf.label}</h5>
+                      <h5 className="turf-title mb-3">{turf.label}</h5>
                       <div className="slots-timeline">
                         {FIXED_SLOTS.map((slot, index) => {
                           const booked = isSlotBooked(turf.value, slot.startTime);
