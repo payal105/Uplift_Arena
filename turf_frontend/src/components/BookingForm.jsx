@@ -18,7 +18,7 @@ const PRICING = {
   BADMINTON: { rate: 1200, description: 'Hourly · max 4 pax' },
   PICKLEBALL: { rate: 1200, description: 'Hourly · max 4 pax' },
   FUTSAL: { rate: 1200, description: 'Per hour · max 10 pax' },
-  CRICKET: { rate: 1200, description: 'Per hour · max 10 pax' },
+  CRICKET: { rate: 1200, description: 'Per hour · max 10 pax · min 2 hrs' },
   BIG_TURF: { rate: 2000, description: 'Per hour · max 20 pax · min 2 hrs' },
 };
 
@@ -64,16 +64,16 @@ const BookingForm = () => {
     return date;
   };
 
-  // Returns an error string if Big Turf slot selection is invalid, otherwise null
-  const getBigTurfSlotError = (turfId, selectedSlots) => {
-    if (turfId !== 'big-turf' || selectedSlots.length === 0) return null;
+  // Returns an error string if Cricket slot selection is invalid, otherwise null
+  const getCricketSlotError = (turfId, selectedSlots) => {
+    if (turfId !== 'cricket-turf' || selectedSlots.length === 0) return null;
     const sorted = [...selectedSlots].sort();
     // Check continuity: each slot's endTime must equal the next slot's startTime
     for (let i = 0; i < sorted.length - 1; i++) {
       const current = FIXED_SLOTS.find(s => s.startTime === sorted[i]);
       const next = FIXED_SLOTS.find(s => s.startTime === sorted[i + 1]);
       if (!current || !next || current.endTime !== next.startTime) {
-        return 'Big Turf requires a continuous booking of minimum 2 hours (no gaps between slots).';
+        return 'Cricket requires a continuous booking of minimum 2 hours (no gaps between slots).';
       }
     }
     // Check minimum 2 hours
@@ -86,7 +86,7 @@ const BookingForm = () => {
       return sum + diff;
     }, 0);
     if (totalMins < 120) {
-      return 'Big Turf requires a continuous booking of minimum 2 hours.';
+      return 'Cricket requires a continuous booking of minimum 2 hours.';
     }
     return null;
   };
@@ -140,7 +140,7 @@ const BookingForm = () => {
     fetchMemberInfo();
   }, [isLoggedIn]);
 
-  const [activeGame, setActiveGame] = useState('CRICKET');
+  const [activeGame, setActiveGame] = useState('FUTSAL');
   const formSectionRef = useRef(null);
   const [bookingLoading, setBookingLoading] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -175,18 +175,16 @@ const BookingForm = () => {
   });
 
   const games = [
-    { id: 'CRICKET', name: 'Cricket', icon: '/assets/images/g2.png' },
     { id: 'FUTSAL', name: 'Futsal', icon: '/assets/images/g1.png' },
-    { id: 'BIG_TURF', name: 'Big Turf', icon: null, svg: STADIUM_SVG },
+    { id: 'CRICKET', name: 'Cricket', icon: '/assets/images/g2.png' },
     { id: 'PICKLEBALL', name: 'Pickleball', icon: '/assets/images/g5.png' },
     { id: 'BADMINTON', name: 'Badminton', icon: '/assets/images/g6.png' },
     { id: 'TENNIS', name: 'Tennis', icon: '/assets/images/g3.png' }
   ];
 
   const turfOptionsByGame = {
-    CRICKET: [{ value: 'futsal-turf', label: 'Futsal Turf' }],
     FUTSAL: [{ value: 'futsal-turf', label: 'Futsal Turf' }],
-    BIG_TURF: [{ value: 'big-turf', label: 'Big Turf' }],
+    CRICKET: [{ value: 'cricket-turf', label: 'Cricket Turf' }],
     PICKLEBALL: [{ value: 'pickleball-court2', label: 'Pickleball (Court 2)' }, { value: 'pickleball-court3', label: 'Pickleball (Court 3)' }],
     BADMINTON: [{ value: 'badminton-court1', label: 'Badminton (Court 1)' }, { value: 'badminton-court4', label: 'Badminton (Court 4)' }],
     TENNIS: [{ value: 'tennis-court1', label: 'Tennis (Court 1)' }, { value: 'tennis-court2', label: 'Tennis (Court 2)' }],
@@ -222,8 +220,8 @@ const BookingForm = () => {
     return slotStartTime <= currentTime;
   };
 
-  // Max slots a user can select: 2 for Big Turf, 1 for everything else
-  const maxSlots = formData.turfId === 'big-turf' ? 2 : 1;
+  // Max slots a user can select: 2 for Cricket, 1 for everything else
+  const maxSlots = formData.turfId === 'cricket-turf' ? 2 : 1;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -236,18 +234,18 @@ const BookingForm = () => {
       return;
     }
     // Enforce per-day per-sport hour limit
-    if (formData.turfId !== 'big-turf' && formData.selectedSlots.length > 1) {
+    if (formData.turfId !== 'cricket-turf' && formData.selectedSlots.length > 1) {
       toast.error('You can only book 1 hour per day for this sport.');
       return;
     }
-    if (formData.turfId === 'big-turf' && formData.selectedSlots.length > 2) {
-      toast.error('Big Turf can be booked for a maximum of 2 hours per day.');
+    if (formData.turfId === 'cricket-turf' && formData.selectedSlots.length > 2) {
+      toast.error('Cricket can be booked for a maximum of 2 hours per day.');
       return;
     }
-    // Big Turf: slots must be continuous and total >= 2 hours
-    const bigTurfErr = getBigTurfSlotError(formData.turfId, formData.selectedSlots);
-    if (bigTurfErr) {
-      toast.error(bigTurfErr);
+    // Cricket: slots must be continuous and total >= 2 hours
+    const cricketErr = getCricketSlotError(formData.turfId, formData.selectedSlots);
+    if (cricketErr) {
+      toast.error(cricketErr);
       return;
     }
 
@@ -503,7 +501,7 @@ const BookingForm = () => {
                             const getDisabledMessage = () => {
                               if (blockedSpecific) return 'Arena is closed for a specific event';
                               if (slotPassed && formData.date === today) return 'This time slot has already passed';
-                              if (limitReached) return formData.turfId === 'big-turf' ? 'Maximum 2 hours allowed per day' : 'Maximum 1 hour allowed per day';
+                              if (limitReached) return formData.turfId === 'cricket-turf' ? 'Maximum 2 hours allowed per day' : 'Maximum 1 hour allowed per day';
                               return '';
                             };
                             return (
@@ -556,9 +554,9 @@ const BookingForm = () => {
                             Selected ({formData.selectedSlots.length}): {formData.selectedSlots.slice().sort().map(s => FIXED_SLOTS.find(f => f.startTime === s)?.label).join(', ')}
                           </div>
                         )}
-                        {getBigTurfSlotError(formData.turfId, formData.selectedSlots) && (
+                        {getCricketSlotError(formData.turfId, formData.selectedSlots) && (
                           <div className="text-danger small mt-2 fw-semibold">
-                            ⚠ {getBigTurfSlotError(formData.turfId, formData.selectedSlots)}
+                            ⚠ {getCricketSlotError(formData.turfId, formData.selectedSlots)}
                           </div>
                         )}
                       </div>
