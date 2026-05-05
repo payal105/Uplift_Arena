@@ -18,7 +18,7 @@ const PRICING = {
   BADMINTON: { rate: 1200, description: 'Hourly · max 4 pax' },
   PICKLEBALL: { rate: 1200, description: 'Hourly · max 4 pax' },
   FUTSAL: { rate: 1200, description: 'Per hour · max 10 pax' },
-  CRICKET: { rate: 1200, description: 'Per hour · max 10 pax · min 2 hrs' },
+  CRICKET: { rate: 1000, description: 'Per hour · max 10 pax · min 2 hrs' },
   BIG_TURF: { rate: 2000, description: 'Per hour · max 20 pax · min 2 hrs' },
 };
 
