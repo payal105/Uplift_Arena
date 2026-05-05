@@ -18,7 +18,7 @@ const PRICING = {
   BADMINTON: { rate: 1200, description: 'Hourly · max 4 pax' },
   PICKLEBALL: { rate: 1200, description: 'Hourly · max 4 pax' },
   FUTSAL: { rate: 1200, description: 'Per hour · max 10 pax' },
-  CRICKET: { rate: 1000, description: 'Per hour · max 10 pax · min 2 hrs' },
+  CRICKET: { rate: 2000, description: 'Per hour · max 20 pax · min 2 hrs' },
   BIG_TURF: { rate: 2000, description: 'Per hour · max 20 pax · min 2 hrs' },
 };
 
@@ -396,50 +396,50 @@ const BookingForm = () => {
                     activityToGameId[memberInfo.activityChoice] === game.id
                   );
                 return (
-                <div className="col-4" key={game.id}>
-                  <span
-                    title=''
-                    style={{ display: 'block', cursor: 'default' }}
-                  >
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setActiveGame(game.id);
-                        setTimeout(() => {
-                          if (formSectionRef.current) {
-                            const top = formSectionRef.current.getBoundingClientRect().top + window.scrollY - 90;
-                            window.scrollTo({ top, behavior: 'smooth' });
-                          }
-                        }, 50);
-                      }}
-                      style={{
-                        width: '100%',
-                        minHeight: '110px',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '10px',
-                        borderRadius: '8px',
-                        padding: '20px',
-                        background: activeGame === game.id ? '#08295E' : '#AADF6D',
-                        boxShadow: '4px 4px 0px 2px #08295E',
-                        border: '0',
-                        fontSize: '16px',
-                        fontWeight: '600',
-                        color: activeGame === game.id ? '#fff' : '#08295E',
-                        cursor: 'pointer',
-                        opacity: 1,
-                      }}
+                  <div className="col-4" key={game.id}>
+                    <span
+                      title=''
+                      style={{ display: 'block', cursor: 'default' }}
                     >
-                      {game.svg
-                        ? <span style={{ display: 'flex', color: activeGame === game.id ? '#fff' : '#08295E' }}>{game.svg}</span>
-                        : <img src={game.icon} alt={game.name} style={{ filter: activeGame === game.id ? 'brightness(0) invert(1)' : 'none' }} />
-                      }
-                      {game.name}
-                    </button>
-                  </span>
-                </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setActiveGame(game.id);
+                          setTimeout(() => {
+                            if (formSectionRef.current) {
+                              const top = formSectionRef.current.getBoundingClientRect().top + window.scrollY - 90;
+                              window.scrollTo({ top, behavior: 'smooth' });
+                            }
+                          }, 50);
+                        }}
+                        style={{
+                          width: '100%',
+                          minHeight: '110px',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '10px',
+                          borderRadius: '8px',
+                          padding: '20px',
+                          background: activeGame === game.id ? '#08295E' : '#AADF6D',
+                          boxShadow: '4px 4px 0px 2px #08295E',
+                          border: '0',
+                          fontSize: '16px',
+                          fontWeight: '600',
+                          color: activeGame === game.id ? '#fff' : '#08295E',
+                          cursor: 'pointer',
+                          opacity: 1,
+                        }}
+                      >
+                        {game.svg
+                          ? <span style={{ display: 'flex', color: activeGame === game.id ? '#fff' : '#08295E' }}>{game.svg}</span>
+                          : <img src={game.icon} alt={game.name} style={{ filter: activeGame === game.id ? 'brightness(0) invert(1)' : 'none' }} />
+                        }
+                        {game.name}
+                      </button>
+                    </span>
+                  </div>
                 );
               })}
             </div>
@@ -491,7 +491,7 @@ const BookingForm = () => {
                           {FIXED_SLOTS.map((slot) => {
                             const isSelected = formData.selectedSlots.includes(slot.startTime);
                             const slotPassed = isSlotPassed(slot.startTime);
-                            const blockedSpecific = 
+                            const blockedSpecific =
                               (formData.date === '2026-04-18' && ['18:00', '19:00', '20:00', '21:00'].includes(slot.startTime)) ||
                               (formData.date === '2026-04-22' && ['19:00', '20:00', '21:00'].includes(slot.startTime)) ||
                               (formData.date === '2026-04-23');
