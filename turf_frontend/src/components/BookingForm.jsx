@@ -491,14 +491,16 @@ const BookingForm = () => {
                           {FIXED_SLOTS.map((slot) => {
                             const isSelected = formData.selectedSlots.includes(slot.startTime);
                             const slotPassed = isSlotPassed(slot.startTime);
+                            const blockedCricketSlot = formData.date === '2026-05-10' && formData.turfId === 'cricket-turf' && ['19:00', '20:00'].includes(slot.startTime);
                             const blockedSpecific =
                               (formData.date === '2026-04-18' && ['18:00', '19:00', '20:00', '21:00'].includes(slot.startTime)) ||
                               (formData.date === '2026-04-22' && ['19:00', '20:00', '21:00'].includes(slot.startTime)) ||
                               (formData.date === '2026-04-23');
                             const limitReached = !isSelected && formData.selectedSlots.length >= maxSlots;
-                            const isDisabled = limitReached || slotPassed || blockedSpecific;
+                            const isDisabled = limitReached || slotPassed || blockedSpecific || blockedCricketSlot;
                             const today = getTodayDate();
                             const getDisabledMessage = () => {
+                              if (blockedCricketSlot) return 'This slot is blocked for cricket';
                               if (blockedSpecific) return 'Arena is closed for a specific event';
                               if (slotPassed && formData.date === today) return 'This time slot has already passed';
                               if (limitReached) return formData.turfId === 'cricket-turf' ? 'Maximum 2 hours allowed per day' : 'Maximum 1 hour allowed per day';
