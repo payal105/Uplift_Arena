@@ -496,10 +496,12 @@ const BookingForm = () => {
                               (formData.date === '2026-04-18' && ['18:00', '19:00', '20:00', '21:00'].includes(slot.startTime)) ||
                               (formData.date === '2026-04-22' && ['19:00', '20:00', '21:00'].includes(slot.startTime)) ||
                               (formData.date === '2026-04-23');
+                            const blockedFutsalSlot = formData.date === '2026-05-10' && formData.turfId === 'futsal-turf' && slot.startTime === '18:00';
                             const limitReached = !isSelected && formData.selectedSlots.length >= maxSlots;
-                            const isDisabled = limitReached || slotPassed || blockedSpecific || blockedCricketSlot;
+                            const isDisabled = limitReached || slotPassed || blockedSpecific || blockedCricketSlot || blockedFutsalSlot;
                             const today = getTodayDate();
                             const getDisabledMessage = () => {
+                              if (blockedFutsalSlot) return 'This slot is blocked for an event today';
                               if (blockedCricketSlot) return 'This slot is blocked for cricket';
                               if (blockedSpecific) return 'Arena is closed for a specific event';
                               if (slotPassed && formData.date === today) return 'This time slot has already passed';
