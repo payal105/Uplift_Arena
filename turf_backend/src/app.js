@@ -15,6 +15,7 @@ const allowedOrigins = [
   "https://test.payu.in",
   "http://localhost:5173",
   "http://localhost:5174",
+  "http://localhost:5175",
   "http://localhost:3000",
   "http://localhost:4000",
   "http://localhost:5000",
@@ -39,10 +40,15 @@ app.use(
       if (allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
+      // Allow any localhost port (covers dev dashboard, admin panel, etc.)
+      if (/^http:\/\/(localhost|127\.0\.0\.1):\d+$/.test(origin)) {
+        return callback(null, true);
+      }
       // Allow any vercel.app subdomain (for preview deployments)
       if (/\.vercel\.app$/.test(origin)) {
         return callback(null, true);
       }
+      console.log('CORS rejected origin:', origin);
       return callback(new Error("Not allowed by CORS"));
     },
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
@@ -146,6 +152,11 @@ console.log('✅ PayU payment routes loaded at /api/payments/payu');
 // Stats routes
 const statsRoutes = require("./routes/statsRoutes")
 app.use("/api/stats", statsRoutes)
+
+// Dev dashboard auth (DevCreds collection)
+const devRoutes = require("./routes/devRoutes")
+app.use("/api/dev", devRoutes)
+console.log("✅ Dev routes loaded at /api/dev")
 
 // Test purpose
 const adminTestRoutes = require("./routes/adminTestRoutes")

@@ -5,7 +5,7 @@ const { generateToken } = require("../utils/jwt");
 // Register first admin (public route)
 exports.registerFirstAdmin = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, username, email, password } = req.body;
 
     if (!name || !email || !password) {
       return res.status(400).json({ message: "Please provide name, email, and password" });
@@ -16,10 +16,18 @@ exports.registerFirstAdmin = async (req, res) => {
       return res.status(409).json({ message: "Admin with this email already exists" });
     }
 
+    if (username) {
+      const existingUsername = await AdminUser.findOne({ username });
+      if (existingUsername) {
+        return res.status(409).json({ message: "Username already taken" });
+      }
+    }
+
     const hashedPassword = await hashPassword(password);
 
     const newAdmin = new AdminUser({
       name,
+      username: username || undefined,
       email,
       password: hashedPassword,
       role: "SUPER_ADMIN",
@@ -39,6 +47,7 @@ exports.registerFirstAdmin = async (req, res) => {
       admin: {
         id: newAdmin._id,
         name: newAdmin.name,
+        username: newAdmin.username,
         email: newAdmin.email,
         role: newAdmin.role
       }
@@ -50,7 +59,7 @@ exports.registerFirstAdmin = async (req, res) => {
 
 exports.createSuperAdmin = async (req, res) => {
   try {
-    const { name, email, password, role } = req.body
+    const { name, username, email, password, role } = req.body
 
     if (!name || !email || !password || !role) {
       return res.status(400).json({ message: "Please provide name, email, password, and role" })
@@ -66,10 +75,18 @@ exports.createSuperAdmin = async (req, res) => {
       return res.status(409).json({ message: "Admin with this email already exists" })
     }
 
+    if (username) {
+      const existingUsername = await AdminUser.findOne({ username })
+      if (existingUsername) {
+        return res.status(409).json({ message: "Username already taken" })
+      }
+    }
+
     const hashedPassword = await hashPassword(password)
 
     const newAdmin = new AdminUser({
       name,
+      username: username || undefined,
       email,
       password: hashedPassword,
       role,
@@ -83,6 +100,7 @@ exports.createSuperAdmin = async (req, res) => {
       admin: {
         id: newAdmin._id,
         name: newAdmin.name,
+        username: newAdmin.username,
         email: newAdmin.email,
         role: newAdmin.role
       }
@@ -94,9 +112,22 @@ exports.createSuperAdmin = async (req, res) => {
 
 exports.loginAdmin = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { username, email, password } = req.body;
 
-    const admin = await AdminUser.findOne({ email, isActive: true });
+    // Accept login by username OR email
+    const identifier = username || email;
+    if (!identifier || !password) {
+      return res.status(400).json({ message: "Username/email and password are required" });
+    }
+
+    // Try to find by username first, then by email
+    const admin = await AdminUser.findOne({
+      $and: [
+        { isActive: true },
+        { $or: [{ username: identifier }, { email: identifier }] }
+      ]
+    });
+
     if (!admin) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
@@ -117,6 +148,7 @@ exports.loginAdmin = async (req, res) => {
       admin: {
         id: admin._id,
         name: admin.name,
+        username: admin.username,
         email: admin.email,
         role: admin.role
       }

@@ -12,18 +12,32 @@ exports.getSlotsByDate = async (req, res) => {
       });
     }
 
-    const slots = await Slot.find({ 
-      turf: turfId, 
-      date 
-    })
-    .populate("turf", "name pricePerHour slotDurationMinutes")
-    .sort({ startTime: 1 });
+    const filter = { turf: turfId, date };
 
-    res.json({ slots });
+    // Run slot fetch and counts in parallel from DB
+    const [slots, available, blocked, booked] = await Promise.all([
+      Slot.find(filter)
+        .populate("turf", "name pricePerHour slotDurationMinutes")
+        .sort({ startTime: 1 }),
+      Slot.countDocuments({ ...filter, status: "AVAILABLE" }),
+      Slot.countDocuments({ ...filter, status: "BLOCKED" }),
+      Slot.countDocuments({ ...filter, status: "BOOKED" }),
+    ]);
+
+    res.json({
+      slots,
+      summary: {
+        available,
+        blocked,
+        booked,
+        total: slots.length,
+      },
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
+
 
 // Generate slots for a turf (Admin only)
 exports.generateSlots = async (req, res) => {

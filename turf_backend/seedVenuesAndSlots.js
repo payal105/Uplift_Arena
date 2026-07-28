@@ -7,95 +7,19 @@ const Slot = require("./src/models/Slot");
 
 // Venue data for Siliguri and Kolkata
 const venuesData = {
-  Siliguri: [
-    {
-      name: "Green Valley Sports Complex",
-      address: "Sevoke Road, Siliguri - 734001",
-      turfs: [
-        { name: "Cricket Ground A", sportType: "CRICKET", pricePerHour: 1200, amenities: ["Floodlights", "Parking", "Changing Room"] },
-        { name: "Football Field 1", sportType: "FOOTBALL", pricePerHour: 1000, amenities: ["Floodlights", "Parking", "Washroom"] },
-        { name: "Badminton Court 1", sportType: "BADMINTON", pricePerHour: 400, amenities: ["AC", "Parking", "Water"] },
-        { name: "Tennis Court 1", sportType: "TENNIS", pricePerHour: 600, amenities: ["Floodlights", "Parking", "Water"] }
-      ]
-    },
-    {
-      name: "Mahananda Sports Arena",
-      address: "Hill Cart Road, Siliguri - 734010",
-      turfs: [
-        { name: "Premium Cricket Turf", sportType: "CRICKET", pricePerHour: 1500, amenities: ["Floodlights", "Pavilion", "Scoreboard", "Parking"] },
-        { name: "Football Arena", sportType: "FOOTBALL", pricePerHour: 1200, amenities: ["Floodlights", "Seating", "Parking"] },
-        { name: "Tennis Court Premium", sportType: "TENNIS", pricePerHour: 800, amenities: ["Floodlights", "Parking", "Pro Shop"] }
-      ]
-    },
-    {
-      name: "City Sports Hub",
-      address: "Pradhan Nagar, Siliguri - 734003",
-      turfs: [
-        { name: "Multi-Sport Turf 1", sportType: "FOOTBALL", pricePerHour: 900, amenities: ["Floodlights", "Parking"] },
-        { name: "Badminton Complex", sportType: "BADMINTON", pricePerHour: 350, amenities: ["AC", "Parking", "Changing Room"] },
-        { name: "Pickleball Court 1", sportType: "PICKLEBALL", pricePerHour: 500, amenities: ["Floodlights", "Water", "Parking"] },
-        { name: "Tennis Court Standard", sportType: "TENNIS", pricePerHour: 550, amenities: ["Floodlights", "Parking"] }
-      ]
-    },
-    {
-      name: "North Bengal Sports Center",
-      address: "Dagapur, Siliguri - 734015",
-      turfs: [
-        { name: "Cricket Academy Ground", sportType: "CRICKET", pricePerHour: 1300, amenities: ["Floodlights", "Nets", "Coaching", "Parking"] },
-        { name: "Football Training Field", sportType: "FOOTBALL", pricePerHour: 1100, amenities: ["Floodlights", "Parking", "Washroom"] },
-        { name: "Pickleball Court 2", sportType: "PICKLEBALL", pricePerHour: 450, amenities: ["Floodlights", "Parking", "Water"] }
-      ]
-    }
-  ],
   Kolkata: [
     {
-      name: "Salt Lake Sports Complex",
-      address: "Salt Lake, Sector V, Kolkata - 700091",
+      name: "Uplift Sports Arena",
+      address: "Kolkata",
       turfs: [
-        { name: "Premium Cricket Pitch 1", sportType: "CRICKET", pricePerHour: 2000, amenities: ["Floodlights", "Pavilion", "Scoreboard", "Parking", "Washroom"] },
-        { name: "Football Ground A", sportType: "FOOTBALL", pricePerHour: 1800, amenities: ["Floodlights", "Seating", "Parking"] },
-        { name: "Badminton Arena 1", sportType: "BADMINTON", pricePerHour: 600, amenities: ["AC", "Parking", "Pro Shop"] },
-        { name: "Tennis Court Elite", sportType: "TENNIS", pricePerHour: 1000, amenities: ["Floodlights", "Parking", "Washroom", "Pro Shop"] }
-      ]
-    },
-    {
-      name: "Rajarhat Sports Hub",
-      address: "New Town, Rajarhat, Kolkata - 700156",
-      turfs: [
-        { name: "Cricket Stadium View", sportType: "CRICKET", pricePerHour: 2200, amenities: ["Floodlights", "Pavilion", "Scoreboard", "Parking", "Cafeteria"] },
-        { name: "Football Championship Field", sportType: "FOOTBALL", pricePerHour: 1900, amenities: ["Floodlights", "Seating", "Parking", "Washroom"] },
-        { name: "Badminton Courts (3 Courts)", sportType: "BADMINTON", pricePerHour: 700, amenities: ["AC", "Parking", "Changing Room", "Water"] },
-        { name: "Pickleball Courts (2 Courts)", sportType: "PICKLEBALL", pricePerHour: 750, amenities: ["Floodlights", "Parking", "Water"] }
-      ]
-    },
-    {
-      name: "EM Bypass Sports Arena",
-      address: "EM Bypass, Kasba, Kolkata - 700107",
-      turfs: [
-        { name: "Cricket Practice Ground", sportType: "CRICKET", pricePerHour: 1800, amenities: ["Floodlights", "Nets", "Parking"] },
-        { name: "Football Turf Pro", sportType: "FOOTBALL", pricePerHour: 1600, amenities: ["Floodlights", "Parking", "Washroom"] },
-        { name: "Pickleball Courts (4 Courts)", sportType: "PICKLEBALL", pricePerHour: 700, amenities: ["Floodlights", "Parking", "Water"] },
-        { name: "Tennis Court Pro", sportType: "TENNIS", pricePerHour: 900, amenities: ["Floodlights", "Parking", "Pro Shop"] }
-      ]
-    },
-    {
-      name: "Lake Gardens Sports Complex",
-      address: "Lake Gardens, Kolkata - 700045",
-      turfs: [
-        { name: "Elite Cricket Ground", sportType: "CRICKET", pricePerHour: 2500, amenities: ["Floodlights", "Pavilion", "Scoreboard", "Parking", "Club House"] },
-        { name: "Football Field Elite", sportType: "FOOTBALL", pricePerHour: 2000, amenities: ["Floodlights", "Seating", "Parking", "Cafeteria"] },
-        { name: "Badminton Center", sportType: "BADMINTON", pricePerHour: 650, amenities: ["AC", "Parking", "Pro Shop", "Coaching"] },
-        { name: "Tennis Court Championship", sportType: "TENNIS", pricePerHour: 1200, amenities: ["Floodlights", "Parking", "Pro Shop", "Club House"] }
-      ]
-    },
-    {
-      name: "Behala Sports Park",
-      address: "Behala, Kolkata - 700034",
-      turfs: [
-        { name: "Community Cricket Ground", sportType: "CRICKET", pricePerHour: 1500, amenities: ["Floodlights", "Parking", "Washroom"] },
-        { name: "Football Academy Field", sportType: "FOOTBALL", pricePerHour: 1300, amenities: ["Floodlights", "Parking", "Coaching"] },
-        { name: "Badminton Courts Complex", sportType: "BADMINTON", pricePerHour: 500, amenities: ["AC", "Parking", "Water"] },
-        { name: "Pickleball Courts", sportType: "PICKLEBALL", pricePerHour: 600, amenities: ["Floodlights", "Parking", "Water"] }
+        { name: "Futsal Turf", sportType: "FOOTBALL", pricePerHour: 1200, amenities: ["Floodlights", "Parking"] },
+        { name: "Cricket Turf", sportType: "CRICKET", pricePerHour: 1500, amenities: ["Floodlights", "Parking"] },
+        { name: "Pickleball (Court 2)", sportType: "PICKLEBALL", pricePerHour: 800, amenities: ["Floodlights", "Water"] },
+        { name: "Pickleball (Court 3)", sportType: "PICKLEBALL", pricePerHour: 800, amenities: ["Floodlights", "Water"] },
+        { name: "Badminton(Court 1)", sportType: "BADMINTON", pricePerHour: 500, amenities: ["AC", "Water"] },
+        { name: "Badminton(Court 4)", sportType: "BADMINTON", pricePerHour: 500, amenities: ["AC", "Water"] },
+        { name: "Tennis (Court 1)", sportType: "TENNIS", pricePerHour: 1000, amenities: ["Floodlights", "Parking"] },
+        { name: "Tennis (Court 2)", sportType: "TENNIS", pricePerHour: 1000, amenities: ["Floodlights", "Parking"] }
       ]
     }
   ]
@@ -104,8 +28,8 @@ const venuesData = {
 // Generate time slots for a given date
 function generateSlots(date) {
   const slots = [];
-  // Morning slots: 6 AM to 12 PM
-  for (let hour = 6; hour < 12; hour++) {
+  // Morning slots: 6 AM to 10 AM
+  for (let hour = 6; hour < 10; hour++) {
     slots.push({
       date,
       startTime: `${hour.toString().padStart(2, '0')}:00`,
@@ -113,8 +37,8 @@ function generateSlots(date) {
       status: "AVAILABLE"
     });
   }
-  // Afternoon/Evening slots: 2 PM to 10 PM
-  for (let hour = 14; hour < 22; hour++) {
+  // Evening slots: 6 PM to 10 PM
+  for (let hour = 18; hour < 22; hour++) {
     slots.push({
       date,
       startTime: `${hour.toString().padStart(2, '0')}:00`,
@@ -143,6 +67,10 @@ async function seedData() {
     console.log("Connecting to MongoDB...");
     await mongoose.connect(process.env.MONGO_URI);
     console.log("✅ MongoDB Connected\n");
+
+    console.log("🗑️ Clearing existing slots...");
+    await Slot.deleteMany({});
+    console.log("✅ Existing slots cleared\n");
 
     const dates = getDateRange();
     console.log(`📅 Creating slots for dates: ${dates.join(", ")}\n`);

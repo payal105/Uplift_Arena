@@ -208,3 +208,143 @@ exports.getAllUsers = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// Admin: Create user (Developer Dashboard)
+exports.adminCreateUser = async (req, res) => {
+  try {
+    const { name, email, phone, city, password, isActive, isMember } = req.body;
+
+    if (!name || !email) {
+      return res.status(400).json({ message: "Name and email are required" });
+    }
+
+    const existing = await UserData.findOne({ email });
+    if (existing) {
+      return res.status(409).json({ message: "Email already registered" });
+    }
+
+    const rawPassword = password || "Uplift@123";
+    const hashedPassword = await bcrypt.hash(rawPassword, 10);
+
+    const user = await UserData.create({
+      name,
+      email,
+      password: hashedPassword,
+      phone: phone || "",
+      city: city || "",
+      isVerified: true,
+      isActive: isActive !== undefined ? isActive : true,
+      isMember: isMember !== undefined ? Number(isMember) : 0,
+      isAdmin: 0
+    });
+
+    res.status(201).json({
+      message: "User created successfully",
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        city: user.city,
+        isActive: user.isActive,
+        isMember: user.isMember
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Admin: Update user (Developer Dashboard)
+exports.adminUpdateUser = async (req, res) => {
+  try {
+    const { name, email, phone, city, isActive, isMember, password } = req.body;
+    const { id } = req.params;
+
+    const updateData = {};
+    if (name !== undefined) updateData.name = name;
+    if (email !== undefined) updateData.email = email;
+    if (phone !== undefined) updateData.phone = phone;
+    if (city !== undefined) updateData.city = city;
+    if (isActive !== undefined) updateData.isActive = isActive;
+    if (isMember !== undefined) updateData.isMember = Number(isMember);
+    if (password) {
+      updateData.password = await bcrypt.hash(password, 10);
+    }
+
+    const user = await UserData.findByIdAndUpdate(
+      id,
+      updateData,
+      { new: true, select: "-password" }
+    );
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json({ message: "User updated successfully", user });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Admin: Bulk import users from Excel payload (Developer Dashboard)
+exports.adminBulkImport = async (req, res) => {
+  try {
+    const { users } = req.body; // Array of user objects
+
+    if (!users || !Array.isArray(users) || users.length === 0) {
+      return res.status(400).json({ message: "A non-empty users array is required" });
+    }
+
+    const results = { created: 0, updated: 0, errors: [] };
+    const DEFAULT_PASSWORD = "Uplift@123";
+
+    for (const u of users) {
+      try {
+        if (!u.name || !u.email) {
+          results.errors.push({ email: u.email || "unknown", reason: "name and email are required" });
+          continue;
+        }
+
+        const existing = await UserData.findOne({ email: u.email.toLowerCase().trim() });
+
+        if (existing) {
+          // Update existing user (never overwrite password from Excel)
+          const updateData = {
+            name: u.name || existing.name,
+            phone: u.phone || existing.phone || "",
+            city: u.city || existing.city || "",
+            isActive: u.isActive !== undefined ? Boolean(u.isActive) : existing.isActive,
+            isMember: u.isMember !== undefined ? Number(u.isMember) : existing.isMember
+          };
+          await UserData.findByIdAndUpdate(existing._id, updateData);
+          results.updated++;
+        } else {
+          const hashedPassword = await bcrypt.hash(u.password || DEFAULT_PASSWORD, 10);
+          await UserData.create({
+            name: u.name,
+            email: u.email.toLowerCase().trim(),
+            password: hashedPassword,
+            phone: u.phone || "",
+            city: u.city || "",
+            isVerified: true,
+            isActive: u.isActive !== undefined ? Boolean(u.isActive) : true,
+            isMember: u.isMember !== undefined ? Number(u.isMember) : 0,
+            isAdmin: 0
+          });
+          results.created++;
+        }
+      } catch (err) {
+        results.errors.push({ email: u.email, reason: err.message });
+      }
+    }
+
+    res.status(200).json({
+      message: `Import complete: ${results.created} created, ${results.updated} updated`,
+      ...results
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

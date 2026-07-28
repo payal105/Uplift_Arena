@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const user_dataController = require("../controllers/user_dataController");
-const { authenticate } = require("../middlewares/auth");
+const { authenticate, protect } = require("../middlewares/auth");
 
 // Public routes
 router.post("/register", user_dataController.register);
@@ -15,5 +15,10 @@ router.put("/profile", authenticate, user_dataController.updateProfile);
 
 // Admin routes - Get all users (non-admins)
 router.get("/", user_dataController.getAllUsers);
+
+// Developer Dashboard admin routes (AdminUser JWT required)
+router.post("/admin/create", protect, user_dataController.adminCreateUser);
+router.put("/admin/:id", protect, user_dataController.adminUpdateUser);
+router.post("/admin/bulk-import", protect, user_dataController.adminBulkImport);
 
 module.exports = router;
