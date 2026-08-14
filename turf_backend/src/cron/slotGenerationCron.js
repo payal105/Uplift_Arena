@@ -1,12 +1,11 @@
 const cron = require("node-cron");
-const mongoose = require("mongoose");
 const Turf = require("../models/Turf");
 const Slot = require("../models/Slot");
 
 /**
  * Runs every day at 00:05 AM IST.
- * Generates slots until Dec 31 of current year across all active turfs.
- * Skips slots that already exist — completely safe to run multiple times.
+ * Generates slots for a rolling 365-day window across all active turfs.
+ * Uses bulk insertMany (ordered:false) so duplicates are silently skipped — safe to run anytime.
  */
 
 const TIME_SLOTS = [
@@ -23,9 +22,12 @@ const TIME_SLOTS = [
 async function generateUpcomingSlots() {
   try {
     const turfs = await Turf.find({ isActive: true }).select("_id name");
-    if (!turfs.length) return;
+    if (!turfs.length) {
+      console.log("[SlotGenCron] No active turfs found.");
+      return;
+    }
 
-    // Build list of dates: today → 365 days from now (rolling 1-year window)
+    // Build list of dates: today → 365 days from now
     const dates = [];
     const today = new Date();
     const yearAhead = new Date(today);
@@ -34,34 +36,51 @@ async function generateUpcomingSlots() {
       dates.push(new Date(d).toISOString().split("T")[0]);
     }
 
-    let created = 0;
-    let skipped = 0;
-
+    // Build all slot documents in memory
+    const slotsToInsert = [];
     for (const turf of turfs) {
       for (const date of dates) {
         for (const { startTime, endTime } of TIME_SLOTS) {
-          const exists = await Slot.exists({ turf: turf._id, date, startTime });
-          if (exists) { skipped++; continue; }
-
-          await Slot.create({ turf: turf._id, date, startTime, endTime, status: "AVAILABLE" });
-          created++;
+          slotsToInsert.push({
+            turf: turf._id,
+            date,
+            startTime,
+            endTime,
+            status: "AVAILABLE",
+          });
         }
       }
     }
 
-    console.log(`[SlotGenCron] Created: ${created} slots, Skipped: ${skipped} (already existed).`);
+    // Bulk insert — ordered:false means duplicates are skipped, rest still inserted
+    let created = 0;
+    let skipped = 0;
+    try {
+      const result = await Slot.insertMany(slotsToInsert, { ordered: false });
+      created = result.length;
+    } catch (bulkErr) {
+      if (bulkErr.code === 11000 || bulkErr.name === "BulkWriteError") {
+        // Partial success: some inserted, some were duplicates
+        created = bulkErr.result?.nInserted ?? bulkErr.insertedDocs?.length ?? 0;
+        skipped = slotsToInsert.length - created;
+      } else {
+        throw bulkErr; // real error — rethrow
+      }
+    }
+
+    console.log(`[SlotGenCron] Done. Created: ${created} | Skipped (already existed): ${skipped} | Turfs: ${turfs.length} | Dates: ${dates.length}`);
   } catch (err) {
-    console.error("[SlotGenCron] Error generating slots:", err.message);
+    console.error("[SlotGenCron] Error:", err.message);
   }
 }
 
 const startSlotGenerationCron = () => {
   // Run once immediately on server startup to fill any gaps
   generateUpcomingSlots().then(() => {
-    console.log("[SlotGenCron] Initial slot generation complete.");
+    console.log("[SlotGenCron] Startup slot generation complete.");
   });
 
-  // Then run every day at 00:05 AM IST to top up the next 90 days
+  // Then run every day at 00:05 AM IST
   cron.schedule("5 0 * * *", async () => {
     console.log("[SlotGenCron] Daily slot generation started...");
     await generateUpcomingSlots();
@@ -69,7 +88,7 @@ const startSlotGenerationCron = () => {
     timezone: "Asia/Kolkata",
   });
 
-  console.log(`[SlotGenCron] Slot generation cron scheduled (daily at 00:05 AM IST, rolling 365-day window).`);
+  console.log("[SlotGenCron] Cron scheduled (daily 00:05 AM IST, rolling 365-day window).");
 };
 
 module.exports = { startSlotGenerationCron };
