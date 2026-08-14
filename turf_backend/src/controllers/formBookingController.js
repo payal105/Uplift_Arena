@@ -1,6 +1,8 @@
 const FormBooking = require("../models/FormBooking");
 const Membership = require("../models/Membership");
 const UserData = require("../models/UserData");
+const Slot = require("../models/Slot");
+const Turf = require("../models/Turf");
 const { sendBookingConfirmationEmail } = require("../utils/emailService");
 
 // Maps membership activityChoice → booking sport key
@@ -13,8 +15,8 @@ const ACTIVITY_TO_SPORT = {
 const TURF_LABELS = {
   'badminton-1': 'Badminton 1',
   'badminton-2': 'Badminton 2',
-  'badminton-court1': 'Badminton (Court 1)',
-  'badminton-court4': 'Badminton (Court 4)',
+  'badminton-court1': 'Badminton(Court 1)',
+  'badminton-court4': 'Badminton(Court 4)',
   'pickleball-1': 'Pickleball 1',
   'pickleball-2': 'Pickleball 2',
   'pickleball-court2': 'Pickleball (Court 2)',
@@ -172,6 +174,15 @@ exports.createFormBooking = async (req, res) => {
       guestCount: guests,
       guestCharges
     });
+
+    // Update Slot status to BOOKED
+    const turfDoc = await Turf.findOne({ name: TURF_LABELS[turfId] || turfId });
+    if (turfDoc) {
+      await Slot.updateMany(
+        { turf: turfDoc._id, date: bookingDate, startTime: { $in: sortedSlots.map(s => s.startTime) } },
+        { $set: { status: 'BOOKED' } }
+      );
+    }
 
     // Send confirmation email to the logged-in user's email
     const userEmail = req.user?.email || booking.email;

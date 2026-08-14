@@ -2,6 +2,8 @@ const crypto = require('crypto');
 const FormBooking = require('../models/FormBooking');
 const Membership = require('../models/Membership');
 const UserData = require('../models/UserData');
+const Slot = require('../models/Slot');
+const Turf = require('../models/Turf');
 const { sendBookingConfirmationEmail } = require('../utils/emailService');
 
 const PAYU_KEY = process.env.PAYU_KEY;
@@ -15,8 +17,8 @@ const BACKEND_URL = (process.env.BACKEND_URL || 'https://uplift-arena-backend.ve
 const FRONTEND_URL = (process.env.FRONTEND_URL || 'https://booking.upliftsportsarena.com').replace(/\/$/, '');
 
 const TURF_LABELS = {
-  'badminton-court1': 'Badminton (Court 1)',
-  'badminton-court4': 'Badminton (Court 4)',
+  'badminton-court1': 'Badminton(Court 1)',
+  'badminton-court4': 'Badminton(Court 4)',
   'pickleball-court2': 'Pickleball (Court 2)',
   'pickleball-court3': 'Pickleball (Court 3)',
   'tennis-court1': 'Tennis (Court 1)',
@@ -374,6 +376,13 @@ exports.handleSuccess = async (req, res) => {
 
       if (booking) {
         try {
+          const turfDoc = await Turf.findOne({ name: booking.turfName });
+          if (turfDoc) {
+            await Slot.updateMany(
+              { turf: turfDoc._id, date: booking.bookingDate, startTime: { $in: booking.slots.map(s => s.startTime) } },
+              { $set: { status: 'BOOKED' } }
+            );
+          }
           await sendBookingConfirmationEmail(booking, booking.email);
         } catch (e) {
           console.error('Booking confirmation email failed:', e.message);
