@@ -168,26 +168,6 @@ const BookingForm = () => {
     }).catch(() => {}); // silently fail — slots just show as all available
   }, []);
 
-  // Re-fetch slot statuses from DB whenever turf or date changes
-  useEffect(() => {
-    const mongoId = turfMongoIds[formData.turfId];
-    if (!mongoId || !formData.date) {
-      setUnavailableSlots(new Set());
-      return;
-    }
-    setLoadingSlots(true);
-    api.get('/api/slots', { params: { turfId: mongoId, date: formData.date } })
-      .then(({ data }) => {
-        const unavailable = new Set(
-          (data.slots || [])
-            .filter(s => s.status === 'BLOCKED' || s.status === 'BOOKED')
-            .map(s => s.startTime)
-        );
-        setUnavailableSlots(unavailable);
-      })
-      .catch(() => setUnavailableSlots(new Set()))
-      .finally(() => setLoadingSlots(false));
-  }, [formData.turfId, formData.date, turfMongoIds]);
 
   const [activeGame, setActiveGame] = useState('FUTSAL');
   const formSectionRef = useRef(null);
@@ -222,6 +202,27 @@ const BookingForm = () => {
     bringGuests: false,
     guestCount: ''
   });
+
+  // Re-fetch slot statuses from DB whenever turf or date changes
+  useEffect(() => {
+    const mongoId = turfMongoIds[formData.turfId];
+    if (!mongoId || !formData.date) {
+      setUnavailableSlots(new Set());
+      return;
+    }
+    setLoadingSlots(true);
+    api.get('/api/slots', { params: { turfId: mongoId, date: formData.date } })
+      .then(({ data }) => {
+        const unavailable = new Set(
+          (data.slots || [])
+            .filter(s => s.status === 'BLOCKED' || s.status === 'BOOKED')
+            .map(s => s.startTime)
+        );
+        setUnavailableSlots(unavailable);
+      })
+      .catch(() => setUnavailableSlots(new Set()))
+      .finally(() => setLoadingSlots(false));
+  }, [formData.turfId, formData.date, turfMongoIds]);
 
   const games = [
     { id: 'FUTSAL', name: 'Futsal', icon: '/assets/images/g1.png' },

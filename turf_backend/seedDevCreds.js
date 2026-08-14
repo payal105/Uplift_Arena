@@ -46,7 +46,7 @@ async function seed() {
     console.log("  DevCreds seeded successfully!");
     console.log("  Login at : http://localhost:5175");
     console.log("  payalDev : P@y@l24092000");
-    console.log("  rishiDev : Footb@ll5TEAM");
+    console.log("  rishiDev : footb@ll5TEAM");
     console.log("──────────────────────────────────────");
 
   } catch (err) {
