@@ -13,6 +13,18 @@ const FIXED_SLOTS = [
   { label: '9:00 - 10:00 PM', startTime: '21:00', endTime: '22:00' },
 ];
 
+// Maps frontend turf alias → exact turf name stored in MongoDB
+const TURF_NAME_MAP = {
+  'futsal-turf':       'Futsal Turf',
+  'cricket-turf':      'Cricket Turf',
+  'pickleball-court2': 'Pickleball (Court 2)',
+  'pickleball-court3': 'Pickleball (Court 3)',
+  'badminton-court1':  'Badminton(Court 1)',
+  'badminton-court4':  'Badminton(Court 4)',
+  'tennis-court1':     'Tennis (Court 1)',
+  'tennis-court2':     'Tennis (Court 2)',
+};
+
 const PRICING = {
   TENNIS: { rate: 1200, description: 'Hourly · max 4 pax' },
   BADMINTON: { rate: 1200, description: 'Hourly · max 4 pax' },
@@ -93,6 +105,9 @@ const BookingForm = () => {
 
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('userToken'));
   const [memberInfo, setMemberInfo] = useState({ isMember: 0, activityChoice: null });
+  const [turfMongoIds, setTurfMongoIds] = useState({});           // alias → MongoDB _id
+  const [unavailableSlots, setUnavailableSlots] = useState(new Set()); // BLOCKED or BOOKED startTimes
+  const [loadingSlots, setLoadingSlots] = useState(false);
 
   // Maps membership activityChoice text → booking game ID
   const activityToGameId = {
@@ -139,6 +154,40 @@ const BookingForm = () => {
     };
     fetchMemberInfo();
   }, [isLoggedIn]);
+
+  // Fetch all turfs once on mount and build alias → MongoDB _id mapping
+  useEffect(() => {
+    api.get('/api/turfs').then(({ data }) => {
+      const list = Array.isArray(data) ? data : (data.turfs || []);
+      const mapping = {};
+      list.forEach(turf => {
+        const alias = Object.entries(TURF_NAME_MAP).find(([, name]) => name === turf.name)?.[0];
+        if (alias) mapping[alias] = turf._id;
+      });
+      setTurfMongoIds(mapping);
+    }).catch(() => {}); // silently fail — slots just show as all available
+  }, []);
+
+  // Re-fetch slot statuses from DB whenever turf or date changes
+  useEffect(() => {
+    const mongoId = turfMongoIds[formData.turfId];
+    if (!mongoId || !formData.date) {
+      setUnavailableSlots(new Set());
+      return;
+    }
+    setLoadingSlots(true);
+    api.get('/api/slots', { params: { turfId: mongoId, date: formData.date } })
+      .then(({ data }) => {
+        const unavailable = new Set(
+          (data.slots || [])
+            .filter(s => s.status === 'BLOCKED' || s.status === 'BOOKED')
+            .map(s => s.startTime)
+        );
+        setUnavailableSlots(unavailable);
+      })
+      .catch(() => setUnavailableSlots(new Set()))
+      .finally(() => setLoadingSlots(false));
+  }, [formData.turfId, formData.date, turfMongoIds]);
 
   const [activeGame, setActiveGame] = useState('FUTSAL');
   const formSectionRef = useRef(null);
@@ -197,6 +246,14 @@ const BookingForm = () => {
     const autoTurf = options.length === 1 ? options[0].value : '';
     setFormData(prev => ({ ...prev, turfId: autoTurf, selectedSlots: [] }));
   }, [activeGame]);
+
+  // Auto-deselect any selected slots that become blocked/booked
+  useEffect(() => {
+    setFormData(prev => ({
+      ...prev,
+      selectedSlots: prev.selectedSlots.filter(s => !unavailableSlots.has(s))
+    }));
+  }, [unavailableSlots]);
 
   // Check if a slot has passed (either past date or past time on today's date)
   const isSlotPassed = (slotStartTime) => {
@@ -486,25 +543,20 @@ const BookingForm = () => {
                     </div>
                     <div className="col-12">
                       <div className="form-group">
-                        <label className="form-label">Select Time Slot(s)</label>
+                        <label className="form-label">
+                          Select Time Slot(s)
+                          {loadingSlots && <span className="ms-2 text-muted" style={{ fontSize: '0.75rem' }}>Checking availability...</span>}
+                        </label>
                         <div className="d-flex flex-nowrap gap-2 mt-2" style={{ overflowX: 'auto', paddingBottom: '4px' }}>
                           {FIXED_SLOTS.map((slot) => {
                             const isSelected = formData.selectedSlots.includes(slot.startTime);
                             const slotPassed = isSlotPassed(slot.startTime);
-                            const blockedCricketSlot = (formData.date === '2026-05-10' && formData.turfId === 'cricket-turf' && ['19:00', '20:00'].includes(slot.startTime)) ||
-                                                       (formData.date === '2026-05-24' && formData.turfId === 'cricket-turf' && ['07:00', '08:00'].includes(slot.startTime));
-                            const blockedSpecific =
-                              (formData.date === '2026-04-18' && ['18:00', '19:00', '20:00', '21:00'].includes(slot.startTime)) ||
-                              (formData.date === '2026-04-22' && ['19:00', '20:00', '21:00'].includes(slot.startTime)) ||
-                              (formData.date === '2026-04-23');
-                            const blockedFutsalSlot = formData.date === '2026-05-10' && formData.turfId === 'futsal-turf' && slot.startTime === '18:00';
+                            const isDbBlocked = unavailableSlots.has(slot.startTime);
                             const limitReached = !isSelected && formData.selectedSlots.length >= maxSlots;
-                            const isDisabled = limitReached || slotPassed || blockedSpecific || blockedCricketSlot || blockedFutsalSlot;
+                            const isDisabled = limitReached || slotPassed || isDbBlocked;
                             const today = getTodayDate();
                             const getDisabledMessage = () => {
-                              if (blockedFutsalSlot) return 'This slot is blocked for an event today';
-                              if (blockedCricketSlot) return 'This slot is blocked for cricket';
-                              if (blockedSpecific) return 'Arena is closed for a specific event';
+                              if (isDbBlocked) return 'This slot is not available';
                               if (slotPassed && formData.date === today) return 'This time slot has already passed';
                               if (limitReached) return formData.turfId === 'cricket-turf' ? 'Maximum 2 hours allowed per day' : 'Maximum 1 hour allowed per day';
                               return '';

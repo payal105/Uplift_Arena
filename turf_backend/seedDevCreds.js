@@ -19,8 +19,8 @@ const devCredsSchema = new mongoose.Schema({
 const DevCreds = mongoose.models.DevCreds || mongoose.model("DevCreds", devCredsSchema);
 
 const DEVS = [
-  { username: "payalDev",  password: "P@y@l24092000" },
-  { username: "rishiDev",  password: "Footb@ll5TEAM" },
+  { username: "payalDev", password: "P@y@l24092000" },
+  { username: "rishiDev", password: "footb@ll5TEAM" },
 ];
 
 async function seed() {
