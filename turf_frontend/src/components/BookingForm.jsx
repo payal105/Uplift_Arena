@@ -554,9 +554,11 @@ const BookingForm = () => {
                             const slotPassed = isSlotPassed(slot.startTime);
                             const isDbBlocked = unavailableSlots.has(slot.startTime);
                             const limitReached = !isSelected && formData.selectedSlots.length >= maxSlots;
-                            const isDisabled = limitReached || slotPassed || isDbBlocked;
+                            const isTurfNotSelected = !formData.turfId;
+                            const isDisabled = limitReached || slotPassed || isDbBlocked || isTurfNotSelected;
                             const today = getTodayDate();
                             const getDisabledMessage = () => {
+                              if (isTurfNotSelected) return 'Please select a turf first';
                               if (isDbBlocked) return 'This slot is not available';
                               if (slotPassed && formData.date === today) return 'This time slot has already passed';
                               if (limitReached) return formData.turfId === 'cricket-turf' ? 'Maximum 2 hours allowed per day' : 'Maximum 1 hour allowed per day';
