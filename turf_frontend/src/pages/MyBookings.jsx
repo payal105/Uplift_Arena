@@ -47,7 +47,7 @@ const MyBookings = () => {
     api.get('/api/form-bookings/my', {
       headers: { Authorization: `Bearer ${token}` }
     })
-      .then((res) => setBookings((res.data.bookings || []).filter(b => b.status === 'confirmed' && b.paymentStatus === 'SUCCESS')))
+      .then((res) => setBookings((res.data.bookings || []).filter(b => b.status === 'confirmed' && (b.paymentStatus === 'SUCCESS' || b.paymentStatus === 'FREE'))))
       .catch((err) => setError(err.response?.data?.message || 'Failed to load bookings.'))
       .finally(() => setLoading(false));
   }, [navigate]);
