@@ -144,7 +144,11 @@ const BookingForm = () => {
             headers: { Authorization: `Bearer ${token}` }
           });
           const activeMembership = membershipRes.data.memberships?.find(m => m.isActive === 1);
-          setMemberInfo({ isMember: 1, activityChoice: activeMembership?.activityChoice ?? null });
+          if (activeMembership) {
+            setMemberInfo({ isMember: 1, activityChoice: activeMembership.activityChoice ?? null });
+          } else {
+            setMemberInfo({ isMember: 0, activityChoice: null });
+          }
         } else {
           setMemberInfo({ isMember: 0, activityChoice: null });
         }
