@@ -59,6 +59,13 @@ exports.createFormBooking = async (req, res) => {
       return res.status(403).json({ message: "Free bookings are only available to active members." });
     }
     const activeMembership = await Membership.findOne({ userId: req.userId, isActive: 1 });
+    if (activeMembership && activeMembership.endDate < new Date()) {
+      activeMembership.isActive = 0;
+      await activeMembership.save();
+      await UserData.findByIdAndUpdate(req.userId, { isMember: 0 });
+      return res.status(403).json({ message: "Your membership has expired. Please use the standard booking flow." });
+    }
+
     if (activeMembership && activeMembership.activityChoice) {
       const allowedSport = ACTIVITY_TO_SPORT[activeMembership.activityChoice];
       if (allowedSport && (sport || 'GENERAL').toUpperCase() !== allowedSport) {

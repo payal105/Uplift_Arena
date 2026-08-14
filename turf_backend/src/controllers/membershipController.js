@@ -65,6 +65,26 @@ exports.createMembership = async (req, res) => {
 exports.getMyMembership = async (req, res) => {
   try {
     const memberships = await Membership.find({ userId: req.userId }).sort({ createdAt: -1 });
+
+    // Auto-expire memberships dynamically
+    const now = new Date();
+    let updatedMembership = false;
+    for (const m of memberships) {
+      if (m.isActive === 1 && m.endDate < now) {
+        m.isActive = 0;
+        await m.save();
+        updatedMembership = true;
+      }
+    }
+
+    if (updatedMembership) {
+      // Check if user still has any active membership
+      const hasActive = memberships.some(m => m.isActive === 1);
+      if (!hasActive) {
+        await UserData.findByIdAndUpdate(req.userId, { isMember: 0 });
+      }
+    }
+
     res.json({ memberships });
   } catch (error) {
     res.status(500).json({ message: error.message });
