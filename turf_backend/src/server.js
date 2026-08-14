@@ -7,6 +7,7 @@ require("dotenv").config({
 const app = require("./app");
 const connectDB = require("./config/db");
 const { startMembershipExpiryCron } = require("./cron/membershipExpiryCron");
+const { startSlotGenerationCron } = require("./cron/slotGenerationCron");
 
 connectDB()
   .then(() => {
@@ -17,6 +18,7 @@ connectDB()
     });
 
     startMembershipExpiryCron();
+    startSlotGenerationCron();
 
     server.on("error", (error) => {
       console.error("Server error:", error);
