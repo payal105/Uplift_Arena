@@ -37,7 +37,7 @@ function ProtectedLayout() {
 export default function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
+      <BrowserRouter basename="/master">
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/*" element={<ProtectedLayout />} />

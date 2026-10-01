@@ -10,10 +10,10 @@ export default defineConfig({
         target: 'http://localhost:5000',
         changeOrigin: true
       },
-      '/dev': {
+      // Dev dashboard (its own Vite server, base '/master/')
+      '/master': {
         target: 'http://localhost:5175',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/dev/, '')
+        changeOrigin: true
       }
     }
   }

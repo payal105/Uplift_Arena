@@ -19,7 +19,7 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       localStorage.removeItem('dev_token')
       localStorage.removeItem('dev_admin')
-      window.location.href = '/login'
+      window.location.href = '/master/login'
     }
     return Promise.reject(error)
   }
